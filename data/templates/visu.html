@@ -1,0 +1,49 @@
+<html>
+	<head>
+		<title>Varf: {{title}}/{{name}}</title>
+		<style>
+.attribute_list {
+	float: left;
+	overflow: auto;
+	height: 100%;
+}
+
+.attribute_row {
+	margin-top: 5px;
+	margin-bottom: 5px;
+	padding-top: 3px;
+	padding-bottom: 3px;
+	text-align: center;
+	background: #eee;
+}
+
+.graph {
+	overflow: auto;
+	height: 100%;
+}
+		</style>
+	</head>
+	<body>
+		<div class="attribute_list">
+			{{#each attributes}}
+			<div class="attribute_row">
+			<a href="/?att_id={{@index}}">{{.}}</a>
+			</div>
+			{{/each}}
+		</div>
+		<div class="graph">
+			<h1>{{title}}</h1>
+			<h2>{{name}}</h2>
+			{{#each samples}}
+				[{{min}} ; {{max}}[ =
+				{{#each slices}}
+					{{.}}
+				{{/each}}
+			
+			<br>
+
+			{{/each}}
+		</div>
+	</body>
+</html>
+

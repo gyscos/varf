@@ -1,0 +1,16 @@
+[package]
+name = "varf"
+version = "0.1.0"
+authors = ["Alexandre Bury <alexandre.bury@gmail.com>"]
+
+[dependencies]
+getopts = "*"
+iron = "*"
+router = "*"
+rustc-serialize = "0.3"
+
+[dependencies.handlebars-iron]
+git = "https://github.com/sunng87/handlebars-iron"
+
+[dependencies.urlencoded]
+git = "https://github.com/iron/urlencoded"
