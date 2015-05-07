@@ -178,7 +178,7 @@ pub fn serve_result<'a>(port: u16, content: &'a arff::ArffContent) {
     println!("Now listening on port {}", port);
     let mut chain = Chain::new(router);
     chain.link_after(HandlebarsEngine::new(&format!("{}/templates/", datadir), ".html"));
-    Iron::new(chain).http(("localhost", port)).unwrap();
+    Iron::new(chain).http(("0.0.0.0", port)).unwrap();
 }
 
 struct Population(Vec<usize>);
