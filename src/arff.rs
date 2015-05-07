@@ -134,8 +134,6 @@ impl ArffContent {
     }
 
     fn make_samples(&mut self) {
-        println!("Now building sample maps");
-
         for (id,instance) in self.data.iter().enumerate() {
             for (value, samples) in instance.values.iter().zip(self.samples.iter_mut()) {
                 match samples {
@@ -178,7 +176,7 @@ impl ArffContent {
         let reader = io::BufReader::new(file);
         let mut reading_data = false;
 
-        println!("Loading file");
+        println!("Loading arff file...");
         for raw_line in reader.lines() {
             let line = raw_line.unwrap();
             if line.starts_with("%") { continue; }
