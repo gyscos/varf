@@ -1,3 +1,5 @@
+#![feature(core)]
+
 // These are for the Iron web framework
 extern crate iron;
 extern crate router;

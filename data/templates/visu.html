@@ -43,32 +43,32 @@
 
 			<script>
 
-var ranges = [];
-var data = [];
+var rows = [];
+var labels = ['x', '0', '1', '% of 1'];
+rows.push(labels);
 
+var row;
 {{#each samples}}
 
-ranges.push([{{min}}, {{max}}]);
-var samples_{{@index}} = [];
-{{#each slices}}
-samples_{{@../index}}.push({{.}});
-{{/each}}
-data.push(samples_{{@index}});
+row = [];
+row.push({{min}});
 
+{{#each slices}}
+row.push({{.}}.length);
+{{/each}}
+
+row.push(row[2]/(row[2]+row[1]));
+
+rows.push(row);
 
 {{/each}}
 
 var chart = c3.generate({
+	padding: { top: 10, },
 	bindto: '#chart',
 	data: {
 		x: 'x',
-		rows: [
-			['x', '0', '1', '% of 1'],
-			{{#each samples}}
-		[ranges[{{@index}}][0], data[{{@index}}][0].length, data[{{@index}}][1].length, (data[{{@index}}][1].length) / (data[{{@index}}][1].length + data[{{@index}}][0].length)],
-
-			{{/each}}
-		],
+		rows: rows,
 		types: {
 			'0': 'area',
 			'1': 'area',
@@ -80,6 +80,12 @@ var chart = c3.generate({
 		groups: [['0', '1']]
 	},
 	axis: {
+		y2: {
+			padding: {bottom: 0, top: 10},
+			min: 0,
+			max: 1,
+			show: true,
+		},
 		x: {
 
 		},

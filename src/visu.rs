@@ -59,6 +59,36 @@ fn read_or<T: FromStr>(map: &HashMap<String, Vec<String>>, key: &str, default:T)
     }
 }
 
+fn dividers(n: usize) -> Vec<usize> {
+    // First get all dividers under the square root
+    let mut divs = (1..).take_while(|k| k*k <= n).filter(|k| n%k == 0).collect::<Vec<usize>>();
+
+    // Then get all the ones above
+    divs.iter().rev().map(|k| n/k).collect::<Vec<usize>>().iter().map(|k| divs.push(*k)).collect::<Vec<()>>();
+
+    divs
+}
+
+fn dist(k: usize, n: usize) -> usize {
+    if k > n { k - n }
+    else { n - k }
+}
+
+fn round_to_divider(value: usize, target: f32) -> usize {
+    let delta = target as usize;
+    if target - delta as f32 > 0.0001 {
+        return value;
+    }
+
+    let divs = dividers(delta);
+    // Pick one close enough
+    let closest = *divs.iter().min_by(|k| dist(**k,value)).unwrap();
+    // println!("Closest divs of {} from {}: {}", delta, value, closest);
+
+    if dist(closest, value) < value/3 { closest+1 }
+    else { value }
+}
+
 fn prepare_att_view_data(content: &arff::ArffContent, req: &mut Request) -> Result<Json,String> {
 
     let ueq = req.get::<UrlEncodedQuery>();
@@ -94,10 +124,11 @@ fn prepare_att_view_data(content: &arff::ArffContent, req: &mut Request) -> Resu
             let mut max = try!(read_or(&hashmap, "max", samples[samples.len()-1].0));
 
             let span = max - min;
-            let mut n_slices = try!(read_or(&hashmap, "precision", 49));
-            let width = span / n_slices as f32;
+            // round n_slices to a divider of span, if it is a int
+            let n_slices = round_to_divider(try!(read_or(&hashmap, "precision", 50)), span);
+
+            let width = span / (n_slices-1) as f32;
             max += width;
-            n_slices += 1;
 
             let ranges: Vec<Range> = rangify(samples, min, max, n_slices).iter()
                 .map(|pop| slice(pop,
