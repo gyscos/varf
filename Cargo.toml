@@ -4,6 +4,8 @@ version = "0.1.0"
 authors = ["Alexandre Bury <alexandre.bury@gmail.com>"]
 
 [dependencies]
+toml = "0.1"
+xdg-rs = "*"
 getopts = "*"
 iron = "*"
 router = "*"

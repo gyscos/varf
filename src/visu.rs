@@ -8,6 +8,7 @@ use iron::Handler;
 use iron::status;
 use std::str::FromStr;
 use std::mem::transmute;
+use std::fmt::Display;
 use hbs::{Template,HandlebarsEngine};
 use arff;
 
@@ -18,14 +19,20 @@ fn get_data_dir() -> &'static str {
     }
 }
 
+fn read_value<T: FromStr> (s: &str) -> Result<T,String>
+    where T::Err : Display {
+    match T::from_str(s) {
+        Ok(value) => Ok(value),
+        Err(e) => Err(format!("could not read value: {}", e)),
+    }
+}
+
 fn read_id(s: &str, content: &arff::ArffContent) -> Result<usize,String> {
-    match usize::from_str(s) {
-        Err(e) => return Err(format!("could not read value: {}", e)),
-        Ok(id) => if id >= content.attributes.len() {
-            return Err(format!("Invalid attribute id! {} > {}", id, content.attributes.len()-1));
-        } else {
-            Ok(id)
-        },
+    let id: usize = try!(read_value(s));
+    if id >= content.attributes.len() {
+        Err(format!("Invalid attribute id! {} > {}", id, content.attributes.len()-1))
+    } else {
+        Ok(id)
     }
 }
 
@@ -34,6 +41,21 @@ fn decorate(slices: RangeSlices, min: f32, width: f32, i: usize) -> Range {
         min: min+width*i as f32,
         max: min+width*(i+1) as f32,
         slices: slices,
+    }
+}
+
+fn read_or<T: FromStr>(map: &HashMap<String, Vec<String>>, key: &str, default:T) -> Result<T, String> 
+    where T::Err : Display {
+
+    match map.get(key) {
+        None => Ok(default),
+        Some(list) => {
+            if list.is_empty() {
+                Ok(default)
+            } else {
+                Ok(try!(read_value(&list[0])))
+            }
+        }
     }
 }
 
@@ -68,10 +90,11 @@ fn prepare_att_view_data(content: &arff::ArffContent, req: &mut Request) -> Resu
     match content.samples[att_id] {
         arff::AttributeSamples::Numeric(ref samples) => {
 
-            let min = samples[0].0;
-            let mut max = samples.iter().last().unwrap().0;
+            let min = try!(read_or(&hashmap, "min", samples[0].0));
+            let mut max = try!(read_or(&hashmap, "max", samples[samples.len()-1].0));
+
             let span = max - min;
-            let mut n_slices = 49;
+            let mut n_slices = try!(read_or(&hashmap, "precision", 49));
             let width = span / n_slices as f32;
             max += width;
             n_slices += 1;

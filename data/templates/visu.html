@@ -1,14 +1,18 @@
 <html>
 	<head>
 		<title>Varf: {{title}}/{{name}}</title>
+		<link href="https://cdnjs.cloudflare.com/ajax/libs/c3/0.4.10/c3.css" rel="stylesheet" type="text/css">
+
 		<style>
 .attribute_list {
 	float: left;
 	overflow: auto;
 	height: 100%;
+	width: 400px;
 }
 
 .attribute_row {
+	width: 90%;
 	margin-top: 5px;
 	margin-bottom: 5px;
 	padding-top: 3px;
@@ -24,6 +28,8 @@
 		</style>
 	</head>
 	<body>
+		<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.5/d3.min.js" charset="utf-8"></script>
+		<script src="https://cdnjs.cloudflare.com/ajax/libs/c3/0.4.10/c3.min.js"></script>
 		<div class="attribute_list">
 			{{#each attributes}}
 			<div class="attribute_row">
@@ -32,17 +38,55 @@
 			{{/each}}
 		</div>
 		<div class="graph">
-			<h1>{{title}}</h1>
-			<h2>{{name}}</h2>
+			<h1>{{title}} / {{name}}</h1>
+			<div id="chart"></div>
+
+			<script>
+
+var ranges = [];
+var data = [];
+
+{{#each samples}}
+
+ranges.push([{{min}}, {{max}}]);
+var samples_{{@index}} = [];
+{{#each slices}}
+samples_{{@../index}}.push({{.}});
+{{/each}}
+data.push(samples_{{@index}});
+
+
+{{/each}}
+
+var chart = c3.generate({
+	bindto: '#chart',
+	data: {
+		x: 'x',
+		rows: [
+			['x', '0', '1', '% of 1'],
 			{{#each samples}}
-				[{{min}} ; {{max}}[ =
-				{{#each slices}}
-					{{.}}
-				{{/each}}
-			
-			<br>
+		[ranges[{{@index}}][0], data[{{@index}}][0].length, data[{{@index}}][1].length, (data[{{@index}}][1].length) / (data[{{@index}}][1].length + data[{{@index}}][0].length)],
 
 			{{/each}}
+		],
+		types: {
+			'0': 'area',
+			'1': 'area',
+		},
+		axes: {
+			'% of 1': 'y2'
+		},
+
+		groups: [['0', '1']]
+	},
+	axis: {
+		x: {
+
+		},
+	},
+});
+
+			</script>
 		</div>
 	</body>
 </html>

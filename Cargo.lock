@@ -7,7 +7,9 @@ dependencies = [
  "iron 0.1.16 (registry+https://github.com/rust-lang/crates.io-index)",
  "router 0.0.10 (registry+https://github.com/rust-lang/crates.io-index)",
  "rustc-serialize 0.3.14 (registry+https://github.com/rust-lang/crates.io-index)",
+ "toml 0.1.20 (registry+https://github.com/rust-lang/crates.io-index)",
  "urlencoded 0.1.2 (git+https://github.com/iron/urlencoded)",
+ "xdg-rs 0.1.0 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
 [[package]]
@@ -304,6 +306,14 @@ dependencies = [
 ]
 
 [[package]]
+name = "toml"
+version = "0.1.20"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+dependencies = [
+ "rustc-serialize 0.3.14 (registry+https://github.com/rust-lang/crates.io-index)",
+]
+
+[[package]]
 name = "traitobject"
 version = "0.0.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -353,4 +363,9 @@ dependencies = [
  "plugin 0.2.6 (registry+https://github.com/rust-lang/crates.io-index)",
  "url 0.2.33 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
+
+[[package]]
+name = "xdg-rs"
+version = "0.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
 
