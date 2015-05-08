@@ -10,6 +10,7 @@ pub struct Population(pub Vec<usize>);
 pub enum AttributeSamples {
     Numeric(Vec<(f32,usize)>),
     Text(Vec<Population>),
+    BadType,
 }
 
 impl AttributeSamples {
@@ -23,6 +24,7 @@ impl AttributeSamples {
                 }
                 AttributeSamples::Text(list)
             },
+            _ => AttributeSamples::BadType,
         }
     }
 }
@@ -56,12 +58,13 @@ impl Value {
 pub enum AttributeType {
     Numeric,
     Text(Vec<String>),
+    Unknown,
 }
 
 impl AttributeType {
     fn parse(s: &str) -> Self {
         if s == "numeric" { return AttributeType::Numeric; }
-        if s.len() < 2 { panic!("Bad type: {}", s); }
+        if s.len() < 2 { println!("Bad type: {}", s); return AttributeType::Unknown; }
 
         let mut chars = s.chars();
         if chars.next().unwrap() != '{' || chars.last().unwrap() != '}' {
@@ -102,8 +105,9 @@ impl ArffContent {
                 Value::Missing
             } else {
                 match attr.att_type {
-                    AttributeType::Numeric => Value::Numeric(f32::from_str(token).unwrap()),
+                    AttributeType::Numeric => Value::Numeric(f32::from_str(token).ok().expect(&format!("Reading {}", token))),
                     AttributeType::Text(ref tokens) => Value::Text(tokens.iter().position(|s| s == token).unwrap()),
+                    _ => Value::Missing,
                 }
             }
         }).collect();
@@ -147,6 +151,7 @@ impl ArffContent {
                         Some(i) => list[i].0.push(id),
                         None => (),
                     },
+                    &mut AttributeSamples::BadType => (),
                 }
             }
         }

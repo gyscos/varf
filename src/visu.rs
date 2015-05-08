@@ -156,6 +156,7 @@ fn prepare_att_view_data(content: &arff::ArffContent, req: &mut Request) -> Resu
                 .map(|(i, slices)| Range{ label: format!("{}", attr.att_type.tokens().unwrap()[i]), slices: slices})
                 .collect()
         },
+        _ => Vec::new(),
     };
     map.insert("samples".to_string(), ranges.to_json());
 
@@ -207,7 +208,7 @@ impl ToJson for Population {
 enum RangeSlices {
     Text(Vec<Population>),
     // TODO: cross numeric view
-    Numeric,
+    // Numeric,
 }
 
 struct Range {
@@ -221,7 +222,6 @@ impl ToJson for Range {
         map.insert("label".to_string(), self.label.to_json());
         match self.slices {
             RangeSlices::Text(ref pop_list) => { map.insert("slices".to_string(), pop_list.to_json()); },
-            _ => (),
         }
 
         Json::Object(map)
