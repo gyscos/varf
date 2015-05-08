@@ -5,9 +5,11 @@ use std::io::BufRead;
 use std::str::FromStr;
 use std::cmp::Ordering;
 
+pub struct Population(pub Vec<usize>);
+
 pub enum AttributeSamples {
     Numeric(Vec<(f32,usize)>),
-    Text(Vec<Vec<usize>>),
+    Text(Vec<Population>),
 }
 
 impl AttributeSamples {
@@ -17,7 +19,7 @@ impl AttributeSamples {
             AttributeType::Text(ref tokens) => {
                 let mut list = Vec::with_capacity(tokens.len());
                 for _ in 0..tokens.len() {
-                    list.push(Vec::new());
+                    list.push(Population(Vec::new()));
                 }
                 AttributeSamples::Text(list)
             },
@@ -73,10 +75,10 @@ impl AttributeType {
         AttributeType::Text(tokens)
     }
 
-    pub fn tokens(&self) -> &[String] {
+    pub fn tokens(&self) -> Option<&[String]> {
         match self {
-            &AttributeType::Text(ref tokens) => tokens,
-            _ => panic!("Not a text attribute!"),
+            &AttributeType::Text(ref tokens) => Some(tokens),
+            _ => None,
         }
     }
 }
@@ -142,7 +144,7 @@ impl ArffContent {
                         None => (),
                     },
                     &mut AttributeSamples::Text(ref mut list) => match value.text() {
-                        Some(i) => list[i].push(id),
+                        Some(i) => list[i].0.push(id),
                         None => (),
                     },
                 }

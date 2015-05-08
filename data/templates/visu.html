@@ -43,9 +43,13 @@
 
 			<script>
 
+var id0 = {{#if numeric}}1{{else}}0{{/if}};
+var id1 = {{#if numeric}}2{{else}}1{{/if}};
 var rows = [];
 var labels = [];
+{{#if numeric}}
 labels.push('x');
+{{/if}}
 labels.push('0');
 labels.push('1');
 labels.push('% of 1');
@@ -56,13 +60,16 @@ var row;
 {{#each samples}}
 
 row = [];
-row.push({{min}});
+
+{{#if ../numeric}}
+row.push("{{label}}");
+{{/if}}
 
 {{#each slices}}
 row.push({{.}}.length);
 {{/each}}
 
-row.push(row[2]/(row[2]+row[1]));
+row.push(row[id1]/(row[id1]+row[id0]));
 
 rows.push(row);
 
@@ -72,11 +79,18 @@ var chart = c3.generate({
 	padding: { top: 10, },
 	bindto: '#chart',
 	data: {
+		{{#if numeric}}
 		x: 'x',
+		{{/if}}
 		rows: rows,
 		types: {
+			{{#if numeric}}
 			'0': 'area',
 			'1': 'area',
+			{{else}}
+			'0': 'bar',
+			'1': 'bar',
+			{{/if}}
 		},
 		axes: {
 			'% of 1': 'y2'
@@ -91,9 +105,17 @@ var chart = c3.generate({
 			max: 1,
 			show: true,
 		},
+		{{#if numeric}}
+		{{else}}
 		x: {
-
+			type: 'category',
+			categories: [
+			{{#each samples}}
+				'{{label}}',
+			{{/each}}
+			]
 		},
+		{{/if}}
 	},
 });
 

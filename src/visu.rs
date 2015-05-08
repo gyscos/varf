@@ -11,6 +11,7 @@ use std::mem::transmute;
 use std::fmt::Display;
 use hbs::{Template,HandlebarsEngine};
 use arff;
+use arff::Population;
 
 fn get_data_dir() -> &'static str {
     match option_env!("VARF_HOME") {
@@ -37,9 +38,10 @@ fn read_id(s: &str, content: &arff::ArffContent) -> Result<usize,String> {
 }
 
 fn decorate(slices: RangeSlices, min: f32, width: f32, i: usize) -> Range {
+    let min = min+width*i as f32;
+    let max = min+width*(i+1) as f32;
     Range {
-        min: min+width*i as f32,
-        max: min+width*(i+1) as f32,
+        label: format!("{}", (min+max)/2.0),
         slices: slices,
     }
 }
@@ -76,7 +78,7 @@ fn dist(k: usize, n: usize) -> usize {
 
 fn round_to_divider(value: usize, target: f32) -> usize {
     let delta = target as usize;
-    if target - delta as f32 > 0.0001 {
+    if delta == 0 || target - delta as f32 > 0.0001 {
         return value;
     }
 
@@ -112,15 +114,20 @@ fn prepare_att_view_data(content: &arff::ArffContent, req: &mut Request) -> Resu
     let attr = &content.attributes[att_id];
     let cmp = &content.attributes[att_cmp];
 
+    if cmp.att_type.tokens() == None {
+        return Err(format!("Comparison to numeric attributes ({}) not supported", cmp.name));
+    }
+
     let mut map = BTreeMap::<String,Json>::new();
     map.insert("title".to_string(), content.title.to_json());
     map.insert("name".to_string(), attr.name.to_json());
     map.insert("attributes".to_string(), content.attributes.iter().map(|att| att.name.clone()).collect::<Vec<String>>().to_json());
 
-    match content.samples[att_id] {
+    let ranges: Vec<Range> = match content.samples[att_id] {
         arff::AttributeSamples::Numeric(ref samples) => {
+            map.insert("numeric".to_string(), true.to_json());
 
-            let min = try!(read_or(&hashmap, "min", samples[0].0));
+            let mut min = try!(read_or(&hashmap, "min", samples[0].0));
             let mut max = try!(read_or(&hashmap, "max", samples[samples.len()-1].0));
 
             let span = max - min;
@@ -128,20 +135,29 @@ fn prepare_att_view_data(content: &arff::ArffContent, req: &mut Request) -> Resu
             let n_slices = round_to_divider(try!(read_or(&hashmap, "precision", 50)), span);
 
             let width = span / (n_slices-1) as f32;
-            max += width;
+            max += width/2.0;
+            min -= width/2.0;
 
-            let ranges: Vec<Range> = rangify(samples, min, max, n_slices).iter()
+            rangify(samples, min, max, n_slices).iter()
                 .map(|pop| slice(pop,
-                                 |i| content.data[i].values[att_cmp].text().unwrap(),
-                                 cmp.att_type.tokens().len()))
+                                 |i| content.data[i].values[att_cmp].text().expect("value is not text!"),
+                                 cmp.att_type.tokens().expect("attribute is not text!").len()))
                 .enumerate()
                 .map(|(i, slices)| decorate(slices, min, width, i))
-                .collect();
+                .collect()
 
-            map.insert("samples".to_string(), ranges.to_json());
         },
-        arff::AttributeSamples::Text(_) => (),
-    }
+        arff::AttributeSamples::Text(ref groups) => {
+            map.insert("numeric".to_string(), false.to_json());
+            groups.iter().map(|pop| slice(pop,
+                                   |i| content.data[i].values[att_cmp].text().expect("value is not text!!"),
+                                   cmp.att_type.tokens().unwrap().len()))
+                .enumerate()
+                .map(|(i, slices)| Range{ label: format!("{}", attr.att_type.tokens().unwrap()[i]), slices: slices})
+                .collect()
+        },
+    };
+    map.insert("samples".to_string(), ranges.to_json());
 
     Ok(Json::Object(map))
 }
@@ -181,7 +197,6 @@ pub fn serve_result<'a>(port: u16, content: &'a arff::ArffContent) {
     Iron::new(chain).http(("0.0.0.0", port)).unwrap();
 }
 
-struct Population(Vec<usize>);
 
 impl ToJson for Population {
     fn to_json(&self) -> Json {
@@ -196,16 +211,14 @@ enum RangeSlices {
 }
 
 struct Range {
-    min: f32,
-    max: f32,
+    label: String,
     slices: RangeSlices,
 }
 
 impl ToJson for Range {
     fn to_json(&self) -> Json {
         let mut map = BTreeMap::new();
-        map.insert("min".to_string(), self.min.to_json());
-        map.insert("max".to_string(), self.max.to_json());
+        map.insert("label".to_string(), self.label.to_json());
         match self.slices {
             RangeSlices::Text(ref pop_list) => { map.insert("slices".to_string(), pop_list.to_json()); },
             _ => (),
