@@ -127,26 +127,29 @@ fn prepare_att_view_data(content: &arff::ArffContent, req: &mut Request) -> Resu
         arff::AttributeSamples::Numeric(ref samples) => {
             map.insert("numeric".to_string(), true.to_json());
 
-            let mut min = try!(read_or(&hashmap, "min", samples[0].0));
-            let mut max = try!(read_or(&hashmap, "max", samples[samples.len()-1].0));
+            if samples.is_empty() {
+                Vec::new()
+            } else {
+                let mut min = try!(read_or(&hashmap, "min", samples[0].0));
+                let mut max = try!(read_or(&hashmap, "max", samples[samples.len()-1].0));
 
-            let span = max - min;
-            // round n_slices to a divider of span, if it is a int
-            let n_slices = round_to_divider(try!(read_or(&hashmap, "precision", 51)), span);
+                let span = max - min;
+                // round n_slices to a divider of span, if it is a int
+                let n_slices = round_to_divider(try!(read_or(&hashmap, "precision", 51)), span);
 
-            let width = span / (n_slices-1) as f32;
-            // println!("max:{} min:{} width:{}", max, min, width);
-            max += width/2.0;
-            min -= width/2.0;
+                let width = span / (n_slices-1) as f32;
+                // println!("max:{} min:{} width:{}", max, min, width);
+                max += width/2.0;
+                min -= width/2.0;
 
-            rangify(samples, min, max, n_slices).iter()
-                .map(|pop| slice(pop,
-                                 |i| content.data[i].values[att_cmp].text().expect("value is not text!"),
-                                 cmp.att_type.tokens().expect("attribute is not text!").len()))
-                .enumerate()
-                .map(|(i, slices)| decorate(slices, min, width, i))
-                .collect()
-
+                rangify(samples, min, max, n_slices).iter()
+                    .map(|pop| slice(pop,
+                                     |i| content.data[i].values[att_cmp].text().expect("value is not text!"),
+                                     cmp.att_type.tokens().expect("attribute is not text!").len()))
+                    .enumerate()
+                    .map(|(i, slices)| decorate(slices, min, width, i))
+                    .collect()
+            }
         },
         arff::AttributeSamples::Text(ref groups) => {
             map.insert("numeric".to_string(), false.to_json());
