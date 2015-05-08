@@ -38,10 +38,10 @@ fn read_id(s: &str, content: &arff::ArffContent) -> Result<usize,String> {
 }
 
 fn decorate(slices: RangeSlices, min: f32, width: f32, i: usize) -> Range {
-    let min = min+width*i as f32;
-    let max = min+width*(i+1) as f32;
+    let nmin = min+width*i as f32;
+    let nmax = min+width*(i+1) as f32;
     Range {
-        label: format!("{}", (min+max)/2.0),
+        label: format!("{}", (nmin+nmax)/2.0),
         slices: slices,
     }
 }
@@ -132,9 +132,10 @@ fn prepare_att_view_data(content: &arff::ArffContent, req: &mut Request) -> Resu
 
             let span = max - min;
             // round n_slices to a divider of span, if it is a int
-            let n_slices = round_to_divider(try!(read_or(&hashmap, "precision", 50)), span);
+            let n_slices = round_to_divider(try!(read_or(&hashmap, "precision", 51)), span);
 
             let width = span / (n_slices-1) as f32;
+            // println!("max:{} min:{} width:{}", max, min, width);
             max += width/2.0;
             min -= width/2.0;
 
