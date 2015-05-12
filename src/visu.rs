@@ -13,13 +13,6 @@ use hbs::{Template,HandlebarsEngine};
 use arff;
 use arff::Population;
 
-fn get_data_dir() -> &'static str {
-    match option_env!("VARF_HOME") {
-        Some(path) => path,
-        None => "/usr/share/varf",
-    }
-}
-
 fn read_value<T: FromStr> (s: &str) -> Result<T,String>
     where T::Err : Display {
     match T::from_str(s) {
@@ -121,6 +114,8 @@ fn prepare_att_view_data(content: &arff::ArffContent, req: &mut Request) -> Resu
     let mut map = BTreeMap::<String,Json>::new();
     map.insert("title".to_string(), content.title.to_json());
     map.insert("name".to_string(), attr.name.to_json());
+    map.insert("filename".to_string(), content.filename.to_json());
+    map.insert("att_id".to_string(), att_id.to_json());
     map.insert("attributes".to_string(), content.attributes.iter().map(|att| att.name.clone()).collect::<Vec<String>>().to_json());
 
     let ranges: Vec<Range> = match content.samples[att_id] {
@@ -135,7 +130,12 @@ fn prepare_att_view_data(content: &arff::ArffContent, req: &mut Request) -> Resu
 
                 let span = max - min;
                 // round n_slices to a divider of span, if it is a int
-                let n_slices = round_to_divider(try!(read_or(&hashmap, "precision", 51)), span);
+                let precision = try!(read_or(&hashmap, "precision", 51));
+                map.insert("min".to_string(), min.to_json());
+                map.insert("max".to_string(), max.to_json());
+                map.insert("precision".to_string(), precision.to_json());
+
+                let n_slices = round_to_divider(precision, span);
 
                 let width = span / (n_slices-1) as f32;
                 // println!("max:{} min:{} width:{}", max, min, width);
@@ -186,9 +186,8 @@ impl Handler for AttributeViewHandler {
     }
 }
 
-pub fn serve_result<'a>(port: u16, content: &'a arff::ArffContent) {
+pub fn serve_result<'a>(datadir: &'a str, port: u16, content: &'a arff::ArffContent) {
     // Find the resource basedir
-    let datadir = get_data_dir();
     println!("Loading templates from {}", datadir);
 
     let mut router = Router::new();
@@ -225,7 +224,10 @@ impl ToJson for Range {
         let mut map = BTreeMap::new();
         map.insert("label".to_string(), self.label.to_json());
         match self.slices {
-            RangeSlices::Text(ref pop_list) => { map.insert("slices".to_string(), pop_list.to_json()); },
+            RangeSlices::Text(ref pop_list) => {
+                map.insert("slices".to_string(), pop_list.to_json());
+                map.insert("slices_len".to_string(), pop_list.iter().map(|p| p.0.len()).collect::<Vec<usize>>().to_json());
+            },
         }
 
         Json::Object(map)

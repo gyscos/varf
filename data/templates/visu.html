@@ -4,6 +4,11 @@
 		<link href="https://cdnjs.cloudflare.com/ajax/libs/c3/0.4.10/c3.css" rel="stylesheet" type="text/css">
 
 		<style>
+body {
+	padding: 0px;
+	margin: 0px;
+}
+
 a {
 	color: #666;
 	text-decoration: none;
@@ -19,21 +24,35 @@ a:hover {
 	overflow: auto;
 	height: 100%;
 	width: 400px;
+	box-sizing: border-box;
+	padding-left: 10px;
+	padding-right: 10px;
+}
+
+.dials {
+	box-sizing: border-box;
+	width: 100%;
+	text-align: center;
+	margin-top: 20px;
 }
 
 .attribute_row {
-	width: 90%;
+	width: 100%;
+	margin-left: 0px;
+	margin-right: 0px;
 	margin-top: 5px;
 	margin-bottom: 5px;
-	padding-top: 3px;
-	padding-bottom: 3px;
+	padding: 3px;
 	text-align: center;
 	background: #eee;
+	box-sizing: border-box;
 }
 
 .graph {
 	overflow: auto;
 	height: 100%;
+	box-sizing: border-box;
+	padding: 10px;
 }
 		</style>
 	</head>
@@ -48,8 +67,18 @@ a:hover {
 			{{/each}}
 		</div>
 		<div class="graph">
-			<h1>{{title}} / {{name}}</h1>
+			<h1>{{filename}} ({{title}}) / {{name}}</h1>
 			<div id="chart"></div>
+			<div class="dials">
+				<form action="/">
+					<input type="hidden" name="att_id" value="{{att_id}}">
+					<label>Min: <input name="min" value="{{min}}"></label>
+					<label>Max: <input name="max" value="{{max}}"></label>
+					<label>Precision: <input name="precision" value="{{precision}}"></label>
+					<br><br>
+					<input type="submit">
+				</form>
+			</div>
 
 			<script>
 
@@ -75,8 +104,8 @@ row = [];
 row.push("{{label}}");
 {{/if}}
 
-{{#each slices}}
-row.push({{.}}.length);
+{{#each slices_len}}
+row.push({{.}});
 {{/each}}
 
 row.push(row[id1]/(row[id1]+row[id0]));

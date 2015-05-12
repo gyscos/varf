@@ -92,6 +92,7 @@ pub struct Attribute {
 }
 
 pub struct ArffContent {
+    pub filename: String,
     pub title: String,
     pub data: Vec<Instance>,
     pub attributes: Vec<Attribute>,
@@ -174,6 +175,7 @@ impl ArffContent {
         };
 
         let mut content = ArffContent{
+            filename: filename.to_str().unwrap().to_string(),
             title: String::new(),
             attributes: Vec::new(),
             data: Vec::new(),

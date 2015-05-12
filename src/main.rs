@@ -51,16 +51,38 @@ fn get_default_port() -> u16 {
     port
 }
 
-fn read_params() -> (String, u16) {
+fn get_data_dir() -> &'static str {
+    match option_env!("VARF_HOME") {
+        Some(path) => path,
+        None => "/usr/share/varf",
+    }
+}
+
+struct Params {
+    filename: String,
+    datadir: String,
+    port: u16,
+}
+
+fn read_params() -> Result<Params,String> {
     let args: Vec<String> = env::args().collect();
     let mut opts = Options::new();
-    opts.optopt("p", "", "Sets the port to listen to", "PORT");
+    opts.optflag("h", "help", "Prints this help message.");
+    opts.optopt("p", "", "Sets the port to listen to.", "PORT");
+    opts.optopt("d", "", &format!("Sets the directory where varf files are installed. Defaults to {}", get_data_dir()), "VARF_HOME");
+
     let mut matches = match opts.parse(&args[1..]) {
         Ok(m) => m,
         Err(f) => panic!("Error: {}", f),
     };
+
+    if matches.opt_present("h") {
+        return Err(opts.usage("Usage: varf [OPTIONS] FILENAME"));
+    }
+
     if matches.free.is_empty() {
-        panic!("Did not specify a filename.");
+        println!("Error: no filename given!");
+        return Err(opts.usage("Usage: varf [OPTIONS] FILENAME"));
     }
 
     let filename = matches.free.remove(0);
@@ -69,15 +91,26 @@ fn read_params() -> (String, u16) {
         None => get_default_port(),
         Some(p_str) => u16::from_str(&p_str).unwrap(),
     };
+    let datadir = match matches.opt_str("d") {
+        None => get_data_dir().to_string(),
+        Some(datadir) => datadir,
+    };
 
-    (filename, port)
+    Ok(Params {
+        filename: filename,
+        datadir: datadir,
+        port: port,
+    })
 }
 
 fn main() {
 
-    let (filename, port) = read_params();
+    let params = match read_params() {
+        Err(e) => { println!("{}", e); return; },
+        Ok(params) => params,
+    };
 
-    let content = arff::ArffContent::new(path::Path::new(&filename));
+    let content = arff::ArffContent::new(path::Path::new(&params.filename));
 
-    visu::serve_result(port, &content);
+    visu::serve_result(&params.datadir, params.port, &content);
 }
