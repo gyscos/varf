@@ -1,3 +1,4 @@
+use std::f32;
 use std::fs;
 use std::path;
 use std::io;
@@ -36,6 +37,7 @@ pub struct Instance {
 pub enum Value {
     Numeric(f32),
     Text(usize),
+    String(String),
     Missing,
 }
 
@@ -53,17 +55,27 @@ impl Value {
             _ => None,
         }
     }
+
+    pub fn string(&self) -> Option<&str> {
+        match self {
+            &Value::String(ref s) => Some(s),
+            _ => None,
+        }
+    }
 }
 
 pub enum AttributeType {
     Numeric,
     Text(Vec<String>),
+    String,
     Unknown,
 }
 
 impl AttributeType {
+    // Parse an attribute type from the arff header
     fn parse(s: &str) -> Self {
         if s == "numeric" { return AttributeType::Numeric; }
+        if s == "string" { return AttributeType::String; }
         if s.len() < 2 { println!("Bad type: {}", s); return AttributeType::Unknown; }
 
         let mut chars = s.chars();
@@ -78,6 +90,8 @@ impl AttributeType {
         AttributeType::Text(tokens)
     }
 
+    /// If the type is numeric, returns the list of tokens.
+    /// Returns None otherwise.
     pub fn tokens(&self) -> Option<&[String]> {
         match self {
             &AttributeType::Text(ref tokens) => Some(tokens),
@@ -99,6 +113,16 @@ pub struct ArffContent {
     pub samples: Vec<AttributeSamples>,
 }
 
+fn parse_f32(s: &str) -> f32 {
+    if s == "Infinity" {
+        f32::INFINITY
+    } else if s == "-Infinity" {
+        f32::NEG_INFINITY
+    } else {
+        f32::from_str(s).ok().expect(&format!("Reading {}", s))
+    }
+}
+
 impl ArffContent {
     fn load_data_line(&mut self, line: &str) {
         let values = line.split(',').zip(self.attributes.iter()).map(|(token, attr)| {
@@ -106,8 +130,12 @@ impl ArffContent {
                 Value::Missing
             } else {
                 match attr.att_type {
-                    AttributeType::Numeric => Value::Numeric(f32::from_str(token).ok().expect(&format!("Reading {}", token))),
-                    AttributeType::Text(ref tokens) => Value::Text(tokens.iter().position(|s| s == token).unwrap()),
+                    AttributeType::Numeric =>
+                        Value::Numeric(parse_f32(token)),
+                    AttributeType::Text(ref tokens) =>
+                        Value::Text(tokens.iter().position(|s| s == token).unwrap()),
+                    AttributeType::String =>
+                        Value::String(token.to_string()),
                     _ => Value::Missing,
                 }
             }
@@ -167,6 +195,7 @@ impl ArffContent {
         }
     }
 
+    /// Loads a arff file
     pub fn new(filename: &path::Path) -> ArffContent {
         // Read the file line by line
         let file = match fs::File::open(filename) {
@@ -191,8 +220,10 @@ impl ArffContent {
             if line.starts_with("%") { continue; }
 
             if reading_data {
+                // We are loading the data!
                 content.load_data_line(&line);
             } else {
+                // We are still loading the header
                 if content.load_line(&line) { reading_data = true; }
             }
         }

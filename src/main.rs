@@ -1,4 +1,4 @@
-#![feature(core)]
+#![feature(iter_cmp)]
 
 // These are for the Iron web framework
 extern crate iron;
@@ -7,7 +7,7 @@ extern crate handlebars_iron as hbs;
 extern crate urlencoded;
 
 extern crate rustc_serialize;
-extern crate xdg;
+extern crate xdg_basedir;
 extern crate getopts;
 extern crate toml;
 
@@ -24,7 +24,7 @@ use std::io::Read;
 fn get_default_port() -> u16 {
     let default = 8080;
 
-    let path = match xdg::get_config_home() {
+    let path = match xdg_basedir::get_config_home() {
         Ok(path) => path,
         Err(_) => return default,
     };

@@ -98,19 +98,20 @@ rows.push(labels);
 var row;
 {{#each samples}}
 
-row = [];
+	row = [];
 
-{{#if ../numeric}}
-row.push("{{label}}");
-{{/if}}
 
-{{#each slices_len}}
-row.push({{.}});
-{{/each}}
+	{{#if ../../numeric}}
+	row.push("{{label}}");
+	{{/if}}
 
-row.push(row[id1]/(row[id1]+row[id0]));
+	{{#each slices_len}}
+	row.push({{.}});
+	{{/each}}
 
-rows.push(row);
+	row.push(row[id1]/(row[id1]+row[id0]));
+
+	rows.push(row);
 
 {{/each}}
 
