@@ -69,6 +69,7 @@ a:hover {
 		<div class="graph">
 			<h1>{{filename}} ({{title}}) / {{name}}</h1>
 			<div id="chart"></div>
+			{{#if numeric}}
 			<div class="dials">
 				<form action="/">
 					<input type="hidden" name="att_id" value="{{att_id}}">
@@ -79,6 +80,7 @@ a:hover {
 					<input type="submit">
 				</form>
 			</div>
+			{{/if}}
 
 			<script>
 
@@ -89,9 +91,10 @@ var labels = [];
 {{#if numeric}}
 labels.push('x');
 {{/if}}
-labels.push('0');
-labels.push('1');
-labels.push('% of 1');
+{{#each classes}}
+labels.push('{{.}}');
+{{/each}}
+labels.push('% of {{lookup classes 1}}');
 
 rows.push(labels);
 
@@ -105,11 +108,13 @@ var row;
 	row.push("{{label}}");
 	{{/if}}
 
+	var sum = 0;
 	{{#each slices_len}}
+	sum += {{.}};
 	row.push({{.}});
 	{{/each}}
 
-	row.push(row[id1]/(row[id1]+row[id0]));
+	row.push({{lookup slices_len 1}} / sum);
 
 	rows.push(row);
 
@@ -124,19 +129,15 @@ var chart = c3.generate({
 		{{/if}}
 		rows: rows,
 		types: {
-			{{#if numeric}}
-			'0': 'area',
-			'1': 'area',
-			{{else}}
-			'0': 'bar',
-			'1': 'bar',
-			{{/if}}
+			{{#each classes}}
+			'{{.}}': {{#if ../../numeric}}'area'{{else}}'bar'{{/if}},
+			{{/each}}
 		},
 		axes: {
-			'% of 1': 'y2'
+			'% of {{lookup classes 1}}': 'y2'
 		},
 
-		groups: [['0', '1']]
+		groups: [[{{#each classes}}'{{.}}',{{/each}}]]
 	},
 	axis: {
 		y2: {

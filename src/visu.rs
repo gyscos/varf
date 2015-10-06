@@ -98,7 +98,7 @@ fn prepare_att_view_data(content: &arff::ArffContent, req: &mut Request) -> Resu
         None => 0,
     };
 
-    // Default to the class
+    // By default, compares to the last attribute (usually the class)
     let att_cmp = match hashmap.get("att_cmp") {
         Some(ids) => if ids.is_empty() { 0 } else { try!(read_id(&ids[0], content)) },
         None => content.attributes.len() - 1,
@@ -107,15 +107,17 @@ fn prepare_att_view_data(content: &arff::ArffContent, req: &mut Request) -> Resu
     let attr = &content.attributes[att_id];
     let cmp = &content.attributes[att_cmp];
 
-    if cmp.att_type.tokens() == None {
-        return Err(format!("Comparison to numeric attributes ({}) not supported", cmp.name));
-    }
+    let class_tokens = match cmp.att_type.tokens() {
+        Some(tokens) => tokens,
+        None => return Err(format!("Comparison to numeric attributes ({}) not supported", cmp.name)),
+    };
 
     let mut map = BTreeMap::<String,Json>::new();
     map.insert("title".to_string(), content.title.to_json());
     map.insert("name".to_string(), attr.name.to_json());
     map.insert("filename".to_string(), content.filename.to_json());
     map.insert("att_id".to_string(), att_id.to_json());
+    map.insert("classes".to_string(), class_tokens.to_json());
     map.insert("attributes".to_string(), content.attributes.iter().map(|att| att.name.clone()).collect::<Vec<String>>().to_json());
 
     let ranges: Vec<Range> = match content.samples[att_id] {
