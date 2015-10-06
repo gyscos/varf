@@ -20,6 +20,7 @@ use std::fs::File;
 use std::path;
 use std::str::FromStr;
 use std::io::Read;
+use std::process::Command;
 
 fn get_default_port() -> u16 {
     let default = 8080;
@@ -62,6 +63,8 @@ struct Params {
     filename: String,
     datadir: String,
     port: u16,
+
+    open_browser: bool,
 }
 
 fn read_params() -> Result<Params,String> {
@@ -70,6 +73,7 @@ fn read_params() -> Result<Params,String> {
     opts.optflag("h", "help", "Prints this help message.");
     opts.optopt("p", "", "Sets the port to listen to.", "PORT");
     opts.optopt("d", "", &format!("Sets the directory where varf files are installed. Defaults to {}", get_data_dir()), "VARF_HOME");
+    opts.optflag("o", "open", "Open the page in the browser");
 
     let mut matches = match opts.parse(&args[1..]) {
         Ok(m) => m,
@@ -95,11 +99,13 @@ fn read_params() -> Result<Params,String> {
         None => get_data_dir().to_string(),
         Some(datadir) => datadir,
     };
+    let open_browser = matches.opt_present("o");
 
     Ok(Params {
         filename: filename,
         datadir: datadir,
         port: port,
+        open_browser: open_browser,
     })
 }
 
@@ -111,6 +117,11 @@ fn main() {
     };
 
     let content = arff::ArffContent::new(path::Path::new(&params.filename));
+
+    if params.open_browser {
+    Command::new("xdg-open").arg(&format!("http://localhost:{}", params.port)).status().expect("Could not open page in browser.");
+    }
+
 
     visu::serve_result(&params.datadir, params.port, &content);
 }
