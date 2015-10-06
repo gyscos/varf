@@ -12,5 +12,6 @@ Options:
     -p PORT             Sets the port to listen to.
     -d VARF_HOME        Sets the directory where varf files are installed.
                         Defaults to /usr/share/varf
+    -o, --open          Open the page in the browser
 ```
 
