@@ -1,4 +1,3 @@
-use router::Router;
 use std::collections::BTreeMap;
 use std::collections::HashMap;
 use rustc_serialize::json::{Json,ToJson};
@@ -56,7 +55,10 @@ fn read_or<T: FromStr>(map: &HashMap<String, Vec<String>>, key: &str, default:T)
 
 fn dividers(n: usize) -> Vec<usize> {
     // First get all dividers under the square root
-    let mut divs = (1..).take_while(|k| k*k <= n).filter(|k| n%k == 0).collect::<Vec<usize>>();
+    let mut divs: Vec<_> = (1..)
+        .take_while(|k| k*k <= n)
+        .filter(|k| n%k == 0)
+        .collect();
 
     // Then get all the ones above
     divs.iter().rev().map(|k| n/k).collect::<Vec<usize>>().iter().map(|k| divs.push(*k)).collect::<Vec<()>>();
@@ -84,7 +86,67 @@ fn round_to_divider(value: usize, target: f32) -> usize {
     else { value }
 }
 
-fn prepare_att_view_data(content: &arff::ArffContent, req: &mut Request) -> Result<Json,String> {
+fn prepare_pop_view_data(content: &arff::ArffContent, req: &mut Request)
+    -> Result<Json,String>
+{
+    let data = try!(prepare_att_view_data(content, req));
+    let map = match req.get::<UrlEncodedQuery>() {
+        Err(e) => return Err(format!("cannot get query parameters: {}", e)),
+        Ok(map) => map,
+    };
+
+    let att_id = match map.get("att_id") {
+        Some(ids) => if ids.is_empty() { 0 } else { try!(read_id(&ids[0], content)) },
+        None => 0,
+    };
+    let att_cmp = match map.get("att_cmp") {
+        Some(ids) => if ids.is_empty() { 0 } else { try!(read_id(&ids[0], content)) },
+        None => content.attributes.len() - 1,
+    };
+
+    let attr = &content.attributes[att_id];
+    let cmp = &content.attributes[att_cmp];
+
+    let slice_id = match map.get("slice") {
+        Some(slice) =>
+            if slice.is_empty() { return Err("empty slice parameter".to_string()); }
+            else { try!(read_id(&slice[0], content)) },
+        None => return Err("no slice parameter".to_string()),
+    };
+
+    let class = match map.get("class") {
+        Some(class) => match class.first() {
+            Some(class) => match content.get_class_id(att_cmp, class) {
+                Some(class) => class,
+                None => return Err(format!("could not find class {}", class)),
+            },
+            None => return Err("class parameter empty".to_string()),
+        },
+        None => return Err("no class parameter".to_string()),
+    };
+
+    let mut map = BTreeMap::<String,Json>::new();
+
+    let lines: Vec<_> = data["samples"].as_array().expect("samples is not an array")
+        [slice_id].as_object().expect("sample is not an object")
+        ["slices"].as_array().expect("slice is not an array")
+        [class].as_array().expect("population is not an array?!?")
+        .iter().map(|sample| {
+            // println!("Sample: {:?}", sample);
+            content.describe_sample(sample.as_i64().unwrap() as usize)
+        }).collect();
+
+    map.insert("lines".to_string(), lines.to_json());
+
+    map.insert("class_description".to_string(), format!("{} = {}", cmp.name, class).to_json());
+    map.insert("description".to_string(), format!("{} ~ {}", attr.name, data["samples"][slice_id]["label"].as_string().unwrap()).to_json());
+
+    Ok(Json::Object(map))
+}
+
+fn prepare_att_view_data(content: &arff::ArffContent, req: &mut Request)
+    -> Result<Json,String>
+{
 
     let ueq = req.get::<UrlEncodedQuery>();
     let hashmap = match ueq {
@@ -122,6 +184,7 @@ fn prepare_att_view_data(content: &arff::ArffContent, req: &mut Request) -> Resu
 
     let ranges: Vec<Range> = match content.samples[att_id] {
         arff::AttributeSamples::Numeric(ref samples) => {
+            // Numeric attribute. Ranges depend on precision, etc.
             map.insert("numeric".to_string(), true.to_json());
 
             if samples.is_empty() {
@@ -137,6 +200,7 @@ fn prepare_att_view_data(content: &arff::ArffContent, req: &mut Request) -> Resu
                 map.insert("max".to_string(), max.to_json());
                 map.insert("precision".to_string(), precision.to_json());
 
+                // Move a bit the precision if it can make things prettier
                 let n_slices = round_to_divider(precision, span);
 
                 let width = span / (n_slices-1) as f32;
@@ -144,6 +208,8 @@ fn prepare_att_view_data(content: &arff::ArffContent, req: &mut Request) -> Resu
                 max += width/2.0;
                 min -= width/2.0;
 
+                // Slice by value
+                // Then group by class
                 rangify(samples, min, max, n_slices).iter()
                     .map(|pop| slice(pop,
                                      |i| content.data[i].values[att_cmp].text().expect("value is not text!"),
@@ -154,6 +220,7 @@ fn prepare_att_view_data(content: &arff::ArffContent, req: &mut Request) -> Resu
             }
         },
         arff::AttributeSamples::Text(ref groups) => {
+            // Nominal attribute. Simple, one range per attribute value
             map.insert("numeric".to_string(), false.to_json());
             groups.iter().map(|pop| slice(pop,
                                    |i| content.data[i].values[att_cmp].text().expect("value is not text!!"),
@@ -173,17 +240,50 @@ struct AttributeViewHandler {
     content: &'static arff::ArffContent,
 }
 
+enum Action {
+    Data,
+    Population,
+    Error,
+}
+
 impl Handler for AttributeViewHandler {
     fn handle(&self, req: &mut Request) -> IronResult<Response> {
-        let data = prepare_att_view_data(self.content, req);
-        match data {
-            Err(err) => Ok(Response::with((status::Ok, format!("Error: {}", err)))),
-            Ok(json) => {
-                let mut resp = Response::new();
+        // println!("{:?}", req.url.path);
+        let action = match req.url.path.first() {
+            None => Action::Data,
+            Some(ref path) if *path == "" => Action::Data,
+            Some(ref path) if *path == "pop" => Action::Population,
+            Some(_) => Action::Error,
+        };
 
-                resp.set_mut(Template::new("visu", json)).set_mut(status::Ok);
-                Ok(resp)
+        match action {
+            Action::Data => {
+                let data = prepare_att_view_data(self.content, req);
+                match data {
+                    Err(err) => Ok(Response::with((status::Ok, format!("Error: {}", err)))),
+                    Ok(json) => {
+                        let mut resp = Response::new();
+
+                        resp.set_mut(Template::new("visu", json)).set_mut(status::Ok);
+                        Ok(resp)
+                    },
+                }
             },
+            Action::Population => {
+                let data = prepare_pop_view_data(self.content, req);
+                match data {
+                    Err(err) => Ok(Response::with((status::Ok, format!("Error: {}", err)))),
+                    Ok(json) => {
+                        let mut resp = Response::new();
+
+                        resp.set_mut(Template::new("pop", json)).set_mut(status::Ok);
+                        Ok(resp)
+                    },
+                }
+            },
+            Action::Error => {
+                Ok(Response::with(status::NotFound))
+            }
         }
     }
 }
@@ -192,13 +292,11 @@ pub fn serve_result<'a>(datadir: &'a str, port: u16, content: &'a arff::ArffCont
     // Find the resource basedir
     println!("Loading templates from {}", datadir);
 
-    let mut router = Router::new();
-
-    router.get("/", AttributeViewHandler{ content: unsafe { transmute(content) } });
+    let handler = AttributeViewHandler{ content: unsafe { transmute(content) } };
 
     // Load templates from there.
     println!("Now listening on port {}", port);
-    let mut chain = Chain::new(router);
+    let mut chain = Chain::new(handler);
     chain.link_after(HandlebarsEngine::new(&format!("{}/templates/", datadir), ".html"));
     Iron::new(chain).http(("0.0.0.0", port)).unwrap();
 }
@@ -211,6 +309,7 @@ impl ToJson for Population {
 }
 
 enum RangeSlices {
+    // This is used when the class attribute is Text
     Text(Vec<Population>),
     // TODO: cross numeric view
     // Numeric,
@@ -228,6 +327,7 @@ impl ToJson for Range {
         match self.slices {
             RangeSlices::Text(ref pop_list) => {
                 map.insert("slices".to_string(), pop_list.to_json());
+                // Also add a pre-computed length to make things faster
                 map.insert("slices_len".to_string(), pop_list.iter().map(|p| p.0.len()).collect::<Vec<usize>>().to_json());
             },
         }
@@ -236,6 +336,7 @@ impl ToJson for Range {
     }
 }
 
+// Slice a population by the given function
 fn slice<F>(pop: &Population, f: F, n_slices: usize) -> RangeSlices
     where F: Fn(usize) -> usize {
 
@@ -243,11 +344,14 @@ fn slice<F>(pop: &Population, f: F, n_slices: usize) -> RangeSlices
     let mut slices = Vec::with_capacity(n_slices);
     for _ in 0..n_slices { slices.push(Population(Vec::new())); }
 
-    pop.0.iter().map(|i| slices[f(*i)].0.push(*i) ).collect::<Vec<()>>();
+    for i in pop.0.iter() {
+        slices[f(*i)].0.push(*i);
+    }
 
     RangeSlices::Text(slices)
 }
 
+/// Map (f32,usize) by f32 to populations (chunks of usize)
 fn rangify(data: &[(f32,usize)], min: f32, max: f32, slices: usize) -> Vec<Population> {
     if min == max {
         let mut result = Vec::new();
@@ -265,10 +369,16 @@ fn rangify(data: &[(f32,usize)], min: f32, max: f32, slices: usize) -> Vec<Popul
         result.push(Population(Vec::new()));
     }
 
-    data.iter().skip_while(|&&(f,_)| f < min).take_while(|&&(f,_)| f < max)
+    // First, clamp to min & max
+    // map to slice ID : f -> (f-min) / width
+    for (k,i) in data.iter()
+        .skip_while(|&&(f,_)| f < min)
+        .take_while(|&&(f,_)| f < max)
         .map(|&(f,i)| (((f - min)/width) as usize, i) )
-        .map(|(k,i)| result[k].0.push(i))
-        .collect::<Vec<()>>();
+    {
+        // And send it here
+        result[k].0.push(i)
+    }
 
     result
 }

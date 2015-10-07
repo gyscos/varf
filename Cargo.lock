@@ -1,6 +1,6 @@
 [root]
 name = "varf"
-version = "0.1.0"
+version = "0.1.2"
 dependencies = [
  "getopts 0.2.14 (registry+https://github.com/rust-lang/crates.io-index)",
  "handlebars-iron 0.9.0 (git+https://github.com/sunng87/handlebars-iron)",

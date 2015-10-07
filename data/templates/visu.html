@@ -94,27 +94,30 @@ labels.push('x');
 {{#each classes}}
 labels.push('{{.}}');
 {{/each}}
-labels.push('% of {{lookup classes 1}}');
+
+{{#each classes}}
+labels.push('% of {{.}}');
+{{/each}}
 
 rows.push(labels);
 
-var row;
 {{#each samples}}
 
-	row = [];
-
+	var row = [];
 
 	{{#if ../../numeric}}
-	row.push("{{label}}");
+		row.push("{{label}}");
 	{{/if}}
 
 	var sum = 0;
 	{{#each slices_len}}
-	sum += {{.}};
-	row.push({{.}});
+		sum += {{.}};
+		row.push({{.}});
 	{{/each}}
 
-	row.push({{lookup slices_len 1}} / sum);
+	{{#each slices_len}}
+		row.push({{.}} / sum);
+	{{/each}}
 
 	rows.push(row);
 
@@ -134,8 +137,38 @@ var chart = c3.generate({
 			{{/each}}
 		},
 		axes: {
-			'% of {{lookup classes 1}}': 'y2'
+			{{#each classes}}
+				'% of {{.}}': 'y2',
+			{{/each}}
 		},
+
+		onclick: function(e) {
+			// Find out the slice ID
+			var slice_id = e.index;
+			
+			var name = e.name;
+
+			if (name.startsWith("% of"))
+				return;
+
+			var url = "/pop?slice="+slice_id+"&class="+name;
+			url += "&att_id=" + {{att_id}};
+			{{#if numeric}}
+				url += "&precision=" + {{precision}};
+				url += "&min=" + {{min}};
+				url += "&max=" + {{max}};
+			{{/if}}
+
+			window.open(url, "_blank");
+			
+		},
+		hide: [
+			{{#each classes}}
+				{{#unless @first}}
+					'% of {{.}}',
+				{{/unless}}
+			{{/each}}
+		],
 
 		groups: [[{{#each classes}}'{{.}}',{{/each}}]]
 	},

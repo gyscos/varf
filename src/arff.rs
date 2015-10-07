@@ -108,8 +108,12 @@ pub struct Attribute {
 pub struct ArffContent {
     pub filename: String,
     pub title: String,
+
+    // List of all data points
     pub data: Vec<Instance>,
+    // List of attributes from the header
     pub attributes: Vec<Attribute>,
+    // Per-attribute list of samples
     pub samples: Vec<AttributeSamples>,
 }
 
@@ -124,6 +128,34 @@ fn parse_f32(s: &str) -> f32 {
 }
 
 impl ArffContent {
+
+    pub fn get_class_id(&self, attribute: usize, class: &str) -> Option<usize> {
+        self.attributes[attribute].att_type.tokens()
+            .and_then(|tokens| tokens.iter().enumerate().find(|&(_,value)| value == class))
+            .map(|(i,_)| i)
+    }
+
+    pub fn describe_sample(&self, sample_id: usize) -> String {
+        let mut line = String::new();
+
+        for (value, attr) in self.data[sample_id].values.iter().zip(self.attributes.iter()) {
+            if attr.name == "id.ignore" {
+                if let Some(s) = value.string() {
+                    return s.to_string();
+                }
+            }
+            match value {
+                &Value::Numeric(f) => line.push_str(&format!("{}", f)),
+                &Value::Text(i) => line.push_str(&attr.att_type.tokens().unwrap()[i]),
+                &Value::String(ref s) => line.push_str(s),
+                &Value::Missing => line.push('?'),
+            };
+            line.push(',');
+        }
+
+        line
+    }
+
     fn load_data_line(&mut self, line: &str) {
         let values = line.split(',').zip(self.attributes.iter()).map(|(token, attr)| {
             if token == "?" {
