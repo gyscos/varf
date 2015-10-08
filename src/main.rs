@@ -117,7 +117,7 @@ fn main() {
     let content = arff::ArffContent::new(path::Path::new(&params.filename));
 
     if params.open_browser {
-    Command::new("xdg-open").arg(&format!("http://localhost:{}", params.port)).status().expect("Could not open page in browser.");
+    Command::new("xdg-open").arg(&format!("http://localhost:{}", params.port)).status().ok().expect("Could not open page in browser.");
     }
 
 
