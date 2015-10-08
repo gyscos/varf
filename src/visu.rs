@@ -33,6 +33,7 @@ fn read_id(s: &str, content: &arff::ArffContent) -> Result<usize,String> {
     }
 }
 
+
 fn decorate(slices: RangeSlices, min: f32, width: f32, i: usize) -> Range {
     let nmin = min+width*i as f32;
     let nmax = min+width*(i+1) as f32;
