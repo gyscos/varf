@@ -1,7 +1,7 @@
  <html>
 	<head>
 		<title>Varf: {{title}}/{{name}}</title>
-		<link href="/static/style.css" rel="stylesheet" type="text/css">
+		
 
 		<!-- Required Css and js for C3 and D3 plotting -->
 		<link href="/static/c3.css" rel="stylesheet" type="text/css">
@@ -12,6 +12,9 @@
 		<link rel="stylesheet" href="/static/bootstrap.min.css">
 		<script src="/static/jquery-2.1.4.min.js"></script>
 		<script src="/static/bootstrap.min.js"></script>
+        
+        <!-- our css. (declared afterward, so that we can override easily ) -->
+        <link href="/static/style.css" rel="stylesheet" type="text/css">
 		
 
 	</head>
@@ -19,7 +22,7 @@
 	<body>
 
 		<!-- Navigation bar -->
-        <nav class="navbar navbar-default" role="navigation">
+        <nav class="navbar navbar-default" id="custom_navbar" role="navigation">
             <div class="container-fluid">
                 <!-- add a cute bird. Weka has chosen a cute bird from their country (the weka). 
                      Since we are in America ("America, FUCK YEAH!") we choose an eagle, but a cute one -->
@@ -41,14 +44,24 @@
             </div>
         </nav>
 
+        <!-- The list of attributes, filled from the beginning, via template. -->
+        <div>
+            <div class="panel panel-default attribute_list">
+                <div class="title_row panel-heading">
+                    <h4>Features</h4>
+                </div>
+                <div class="row_container">
+                    {{#each attributes}}
+			        <div class="attribute_row">
+                        <div class="attribute_row_index">{{@index}}</div>
+                        <div class="attribute_row_content"><a href="/?att_id={{@index}}">{{.}}</a></div>
+			        </div>
+			        {{/each}}
+                </div>
+            </div>
+        </div>
 
-		<div class="attribute_list">
-			{{#each attributes}}
-			<div class="attribute_row">
-			<a href="/?att_id={{@index}}">{{.}}</a>
-			</div>
-			{{/each}}
-		</div>
+
 		<div class="graph">
 			<h1>{{name}}</h1>
 			<div id="chart"></div>
