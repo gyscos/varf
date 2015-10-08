@@ -30,6 +30,10 @@ a:hover {
 	margin-top: 20px;
 }
 
+.navbar {
+    font-size: 15px;
+}
+
 .attribute_row {
 	width: 100%;
 	margin-left: 0px;

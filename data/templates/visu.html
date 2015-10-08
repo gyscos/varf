@@ -18,7 +18,30 @@
 
 	<body>
 
-		<nav class="navbar navbar-inverse" role="navigation"></nav>
+		<!-- Navigation bar -->
+        <nav class="navbar navbar-default" role="navigation">
+            <div class="container-fluid">
+                <!-- add a cute bird. Weka has chosen a cute bird from their country (the weka). 
+                     Since we are in America ("America, FUCK YEAH!") we choose an eagle, but a cute one -->
+                <div class="navbar-header">
+                    <a class="navbar-brand" href="#">
+                      <img style="height: 45px; margin-top: -8px;" src="/static/eagle.svg">
+                    </a>
+                    <a class="navbar-brand" href="#">VARF</a>
+                </div>
+                <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+                <ul class="nav navbar-nav">
+                    <li class="active"><a href="#">Visualization<span class="sr-only">(current)</span></a></li>
+                    <li><a href="#">Classify</a></li>
+                    <li><a href="#">Feature ranking</a></li>
+                </ul>
+                <ul class="nav navbar-nav navbar-right">
+                    <li><a href="#">{{filename}}</a></li>
+                </ul>
+            </div>
+        </nav>
+
+
 		<div class="attribute_list">
 			{{#each attributes}}
 			<div class="attribute_row">
@@ -27,7 +50,7 @@
 			{{/each}}
 		</div>
 		<div class="graph">
-			<h1>{{filename}} ({{title}}) / {{name}}</h1>
+			<h1>{{name}}</h1>
 			<div id="chart"></div>
 			{{#if numeric}}
 			<div class="dials">
