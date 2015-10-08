@@ -53,7 +53,9 @@ fn get_default_port() -> u16 {
 fn get_data_dir() -> &'static str {
     match option_env!("VARF_HOME") {
         Some(path) => path,
-        None => "/usr/share/varf",
+        // None => "/usr/share/varf",
+        // Actually, default to the local data
+        None => "data",
     }
 }
 
