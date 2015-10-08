@@ -1,6 +1,8 @@
 // These are for the Iron web framework
 extern crate iron;
+extern crate staticfile;
 extern crate router;
+extern crate mount;
 extern crate handlebars_iron as hbs;
 extern crate urlencoded;
 

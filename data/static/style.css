@@ -1,0 +1,51 @@
+body {
+	padding: 0px;
+	margin: 0px;
+}
+
+a {
+	color: #666;
+	text-decoration: none;
+}
+
+a:hover {
+	color: black;
+	text-decoration: none;
+}
+
+.attribute_list {
+	float: left;
+	overflow: auto;
+	height: 100%;
+	width: 400px;
+	box-sizing: border-box;
+	padding-left: 10px;
+	padding-right: 10px;
+}
+
+.dials {
+	box-sizing: border-box;
+	width: 100%;
+	text-align: center;
+	margin-top: 20px;
+}
+
+.attribute_row {
+	width: 100%;
+	margin-left: 0px;
+	margin-right: 0px;
+	margin-top: 5px;
+	margin-bottom: 5px;
+	padding: 3px;
+	text-align: center;
+	background: #eee;
+	box-sizing: border-box;
+}
+
+.graph {
+	overflow: auto;
+	height: 100%;
+	box-sizing: border-box;
+	padding: 10px;
+}
+

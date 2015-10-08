@@ -2,10 +2,14 @@ use std::collections::BTreeMap;
 use std::collections::HashMap;
 use rustc_serialize::json::{Json,ToJson};
 use urlencoded::UrlEncodedQuery;
+use staticfile::Static;
 use iron::prelude::*;
 use iron::Handler;
 use iron::status;
+use mount::Mount;
+use router::Router;
 use std::str::FromStr;
+use std::path::Path;
 use std::mem::transmute;
 use std::fmt::Display;
 use hbs::{Template,HandlebarsEngine};
@@ -242,50 +246,37 @@ struct AttributeViewHandler {
     content: &'static arff::ArffContent,
 }
 
-enum Action {
-    Data,
-    Population,
-    Error,
+struct PopViewHandler {
+    content: &'static arff::ArffContent,
+}
+
+impl Handler for PopViewHandler {
+    fn handle(&self, req: &mut Request) -> IronResult<Response> {
+        let data = prepare_pop_view_data(self.content, req);
+        match data {
+            Err(err) => Ok(Response::with((status::Ok, format!("Error: {}", err)))),
+            Ok(json) => {
+                let mut resp = Response::new();
+
+                resp.set_mut(Template::new("pop", json)).set_mut(status::Ok);
+                Ok(resp)
+            },
+        }
+    }
 }
 
 impl Handler for AttributeViewHandler {
     fn handle(&self, req: &mut Request) -> IronResult<Response> {
-        // println!("{:?}", req.url.path);
-        let action = match req.url.path.first() {
-            None => Action::Data,
-            Some(ref path) if *path == "" => Action::Data,
-            Some(ref path) if *path == "pop" => Action::Population,
-            Some(_) => Action::Error,
-        };
 
-        match action {
-            Action::Data => {
-                let data = prepare_att_view_data(self.content, req);
-                match data {
-                    Err(err) => Ok(Response::with((status::Ok, format!("Error: {}", err)))),
-                    Ok(json) => {
-                        let mut resp = Response::new();
+        let data = prepare_att_view_data(self.content, req);
+        match data {
+            Err(err) => Ok(Response::with((status::Ok, format!("Error: {}", err)))),
+            Ok(json) => {
+                let mut resp = Response::new();
 
-                        resp.set_mut(Template::new("visu", json)).set_mut(status::Ok);
-                        Ok(resp)
-                    },
-                }
+                resp.set_mut(Template::new("visu", json)).set_mut(status::Ok);
+                Ok(resp)
             },
-            Action::Population => {
-                let data = prepare_pop_view_data(self.content, req);
-                match data {
-                    Err(err) => Ok(Response::with((status::Ok, format!("Error: {}", err)))),
-                    Ok(json) => {
-                        let mut resp = Response::new();
-
-                        resp.set_mut(Template::new("pop", json)).set_mut(status::Ok);
-                        Ok(resp)
-                    },
-                }
-            },
-            Action::Error => {
-                Ok(Response::with(status::NotFound))
-            }
         }
     }
 }
@@ -294,11 +285,20 @@ pub fn serve_result<'a>(datadir: &'a str, port: u16, content: &'a arff::ArffCont
     // Find the resource basedir
     println!("Loading templates from {}", datadir);
 
-    let handler = AttributeViewHandler{ content: unsafe { transmute(content) } };
+    let mut router = Router::new();
+
+    router.get("/", AttributeViewHandler{ content: unsafe { transmute(content) } });
+    router.get("/pop", PopViewHandler{ content: unsafe { transmute(content) } });
+
+    let mut mount = Mount::new();
+
+    mount
+        .mount("/", router)
+        .mount("/static/", Static::new(Path::new(&format!("{}/static", datadir))));
 
     // Load templates from there.
     println!("Now listening on port {}", port);
-    let mut chain = Chain::new(handler);
+    let mut chain = Chain::new(mount);
     chain.link_after(HandlebarsEngine::new(&format!("{}/templates/", datadir), ".html"));
     Iron::new(chain).http(("0.0.0.0", port)).unwrap();
 }
