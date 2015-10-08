@@ -4,7 +4,7 @@ version = "0.1.2"
 authors = ["Alexandre Bury <alexandre.bury@gmail.com>","Samuel Humeau <sam@diffbot.com>"]
 
 [dependencies]
-toml = "0.1"
+toml = "*"
 xdg-basedir = "*"
 getopts = "*"
 iron = "*"
@@ -12,9 +12,5 @@ router = "*"
 mount = "*"
 rustc-serialize = "0.3"
 staticfile = "*"
-
-[dependencies.handlebars-iron]
-git = "https://github.com/sunng87/handlebars-iron"
-
-[dependencies.urlencoded]
-git = "https://github.com/iron/urlencoded"
+urlencoded = "*"
+handlebars-iron = "*"
