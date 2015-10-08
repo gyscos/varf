@@ -1,5 +1,3 @@
-#![feature(iter_cmp)]
-
 // These are for the Iron web framework
 extern crate iron;
 extern crate router;

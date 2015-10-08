@@ -77,9 +77,11 @@ fn round_to_divider(value: usize, target: f32) -> usize {
         return value;
     }
 
-    let divs = dividers(delta);
+    // Get the list of the dividers of delta
+    let mut divs = dividers(delta);
+    divs.sort_by(|a,b| dist(*a,value).cmp(&dist(*b,value)));
     // Pick one close enough
-    let closest = *divs.iter().min_by(|k| dist(**k,value)).unwrap();
+    let closest = *divs.first().unwrap();
     // println!("Closest divs of {} from {}: {}", delta, value, closest);
 
     if dist(closest, value) < value/3 { closest+1 }
