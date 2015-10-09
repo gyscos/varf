@@ -19,17 +19,24 @@ a:hover {
     margin-bottom: 15px;
 }
 
-
+.general_container {
+    padding-left: 10px;
+    padding-right: 10px;
+    width: 100%;
+    height:100%;
+}
 
 .attribute_list {
-    float: left;
-    margin-left: 10px;
+    display: inline-block;
+    vertical-align: top;
     margin-bottom: 10px;
+    margin-right: 0px;
     height: 88%;
-    width: 350px;
+    width: 25%;
     overflow:hidden;
     position:relative;
 }
+
 
 .title_row {
     height: 40px;
@@ -39,16 +46,18 @@ a:hover {
     padding-right: 5px;
 }
 
+
 .row_container {
     overflow-y: auto;
     position:absolute;
     bottom:0;
     top: 40px;
-    width: 350px;
+    width: 100%;
 	box-sizing: border-box;
 }
 
 .attribute_row {
+    overflow:hidden;
 	width: 100%;
 	margin-left: 0px;
 	margin-right: 0px;
@@ -56,12 +65,14 @@ a:hover {
     border-bottom-width: 1px;
     border-bottom-style: solid;
     border-color : #eee;
+    white-space: nowrap;
 	box-sizing: border-box;
 }
 
 .attribute_row_index {
     display: inline-block;
     padding: 2px;
+    white-space: normal;
     padding-right: 6px;
     width: 35px;
     border-right-width: 1px;
@@ -70,11 +81,57 @@ a:hover {
     text-align: right;
 }
 
-.attribute_row_content {
+.attribute_row_large {
     display: inline-block;
+    padding: 2px;
+    white-space: normal;
+    padding-right: 6px;
+    width: 70px;
+    border-right-width: 1px;
+    border-right-style: solid;
+    border-color : #eee;
+    text-align: right;
+}
+
+.attribute_row_content {
+    display: inline;
     padding: 2px;
     margin-left: 10px;
 }
+
+.panel_visus {
+    display: inline-block;
+    vertical-align: top;
+    margin-left: -4px;
+    padding-left: 10px;
+    width: 74.5%;
+    height: 88%;
+}
+
+.graph {
+    display: inline-block;
+    vertical-align: top;
+    width: 75%;
+	overflow: hidden;
+	height: 370px;
+	box-sizing: border-box;
+
+}
+
+.overstats {
+    display: inline-block;
+    vertical-align: top;
+    width: 24.9%;
+    margin-left: -4px;
+    padding-left: 10px;
+	height: 370px;
+	box-sizing: border-box;
+}
+
+.stats{
+    height: 100%;
+}
+
 
 .dials {
 	box-sizing: border-box;
@@ -87,10 +144,5 @@ a:hover {
 
 
 
-.graph {
-	overflow: auto;
-	height: 100%;
-	box-sizing: border-box;
-	padding: 10px;
-}
+
 

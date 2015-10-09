@@ -21,6 +21,7 @@
 
 	<body>
 
+        
 		<!-- Navigation bar -->
         <nav class="navbar navbar-default" id="custom_navbar" role="navigation">
             <div class="container-fluid">
@@ -44,8 +45,9 @@
             </div>
         </nav>
 
+        <div class="general_container">
+
         <!-- The list of attributes, filled from the beginning, via template. -->
-        <div>
             <div class="panel panel-default attribute_list">
                 <div class="title_row panel-heading">
                     <h4>Features</h4>
@@ -59,24 +61,51 @@
 			        {{/each}}
                 </div>
             </div>
-        </div>
+
+        <!-- everything is considered a visu, and is on the right -->
+        <div class="panel_visus">
+              <!-- The graph properly talking -->
+              <div class="panel panel-default graph">
+                <div class="title_row panel-heading">
+                    <h4>Visualization for {{name}}</h4>
+                    <div id="chart"></div>
+                </div>
+            </div>
+
+            <!-- A small panel containing some statistics -->
+            <div class="overstats">
+                <div class="panel panel-default stats">
+                    <div class="title_row panel-heading">
+                        <h4>Stats</h4>
+                    </div>
+		            <div class="attribute_row">
+                        <div class="attribute_row_large">Missing: </div>
+                        <div class="attribute_row_content"><a href="/?att_id={{@index}}">1234 (0.81%)</a></div>
+		            </div>
+		            <div class="attribute_row">
+                        <div class="attribute_row_large">Min: </div>
+                        <div class="attribute_row_content"><a href="/?att_id={{@index}}">0</a></div>
+		            </div>
+		            <div class="attribute_row">
+                        <div class="attribute_row_large">Max: </div>
+                        <div class="attribute_row_content"><a href="/?att_id={{@index}}">1</a></div>
+                    </div>
+		            <div class="attribute_row">
+                        <div class="attribute_row_large">Mean: </div>
+                        <div class="attribute_row_content"><a href="/?att_id={{@index}}">0.222</a></div>
+		            </div>
+		            <div class="attribute_row">
+                        <div class="attribute_row_large">Std: </div>
+                        <div class="attribute_row_content"><a href="/?att_id={{@index}}">0.333</a></div>
+		            </div>
+                </div>
+            </div>
+		</div>
+        
+
+		
 
 
-		<div class="graph">
-			<h1>{{name}}</h1>
-			<div id="chart"></div>
-			{{#if numeric}}
-			<div class="dials">
-				<form action="/">
-					<input type="hidden" name="att_id" value="{{att_id}}">
-					<label>Min: <input name="min" value="{{min}}"></label>
-					<label>Max: <input name="max" value="{{max}}"></label>
-					<label>Precision: <input name="precision" value="{{precision}}"></label>
-					<br><br>
-					<input type="submit">
-				</form>
-			</div>
-			{{/if}}
 
 			<script>
 
@@ -190,7 +219,7 @@ var chart = c3.generate({
 });
 
 			</script>
-		</div>
+    </div>
 	</body>
 </html>
 
