@@ -68,8 +68,9 @@
               <div class="panel panel-default graph">
                 <div class="title_row panel-heading">
                     <h4>Visualization for {{name}}</h4>
-                    <div id="chart"></div>
+                    
                 </div>
+                <div id="chart"></div>
             </div>
 
             <!-- A small panel containing some statistics -->
@@ -100,6 +101,68 @@
 		            </div>
                 </div>
             </div>
+
+            <!-- Some actions the the user can do with the graph-->
+              <div class="panel panel-default actions">
+                <div class="title_row panel-heading">
+                    <h4>Color and zoom</h4>
+                </div>
+                <div class="dials">
+                    <form class="form-horizontal">
+                        <div class="form-group">
+                          <label class="col-sm-5 control-label">Class: </label>
+                          <div class="col-sm-7">
+                            <select class="form-control">
+                              <option>class</option>
+                              <option>Japabu</option>
+                              <option>beuku</option>
+                              <option>ranafout</option>
+                            </select>
+                          </div>
+                    </div>
+                    </form>
+                    
+                    <form class="form-horizontal">
+                        <label class="col-sm-5 control-label">Graph axis:</label>
+                        <br>
+                        <div class="form-group">
+                            <input type="hidden" name="att_id" value="{{att_id}}">
+                        </div>
+                        <div class="form-group">
+                          <p class="col-sm-3 control-label">Max</p>
+                          <div class="col-sm-8">
+                            <input class="form-control" id="inputMax" placeholder="{{max}}">
+                          </div>
+                        </div>
+                        <div class="form-group">
+                          <p class="col-sm-3 control-label">Min</p>
+                          <div class="col-sm-8">
+                            <input class="form-control" id="inputMin" placeholder="{{min}}">
+                          </div>
+                        </div>
+                        <div class="form-group">
+                          <p class="col-sm-3 control-label">Precision</p>
+                          <div class="col-sm-8">
+                            <input class="form-control" id="inputPrecision" placeholder="{{precision}}">
+                          </div>
+                        </div>
+
+                    </form>
+                </div>
+            </div>
+
+            <!-- A panel showing related instances, when a user click on the graph -->
+            <div class="overinstances">
+                <div class="panel panel-default instances">
+                    <div class="title_row panel-heading">
+                        <h4>Stats</h4>
+                    </div>
+		            Click on the an area of the graph to show the corresponding instances.
+                </div>
+            </div>
+
+
+
 		</div>
         
 

@@ -31,7 +31,7 @@ a:hover {
     vertical-align: top;
     margin-bottom: 10px;
     margin-right: 0px;
-    height: 88%;
+    height: 660px;
     width: 25%;
     overflow:hidden;
     position:relative;
@@ -133,13 +133,39 @@ a:hover {
 }
 
 
+.actions {
+    display: inline-block;
+    vertical-align: top;
+    width: 32%;
+	overflow: hidden;
+	height: 270px;
+	box-sizing: border-box;
+}
+
+.overinstances {
+    display: inline-block;
+    vertical-align: top;
+    width: 67.9%;
+    margin-left: -4px;
+    padding-left: 10px;
+	height: 270px;
+	box-sizing: border-box;
+}
+
+.instances{
+    height: 100%;
+}
+
 .dials {
 	box-sizing: border-box;
 	width: 100%;
+    padding: 20px;
 	text-align: center;
-	margin-top: 10px;
 }
 
+.form-group {
+    margin-bottom: 5px;
+}
 
 
 
