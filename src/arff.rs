@@ -6,6 +6,7 @@ use std::io::BufRead;
 use std::str::FromStr;
 use std::cmp::Ordering;
 
+#[derive(Debug)]
 pub struct Population(pub Vec<usize>);
 
 pub enum AttributeSamples {

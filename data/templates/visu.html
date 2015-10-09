@@ -131,19 +131,19 @@
 							<div class="form-group">
 								<p class="col-sm-3 control-label">Max</p>
 								<div class="col-sm-8">
-									<input class="form-control" id="inputMax" placeholder="{{max}}">
+									<input class="form-control" id="inputMax" placeholder="{{numeric.max}}">
 								</div>
 							</div>
 							<div class="form-group">
 								<p class="col-sm-3 control-label">Min</p>
 								<div class="col-sm-8">
-									<input class="form-control" id="inputMin" placeholder="{{min}}">
+									<input class="form-control" id="inputMin" placeholder="{{numeric.min}}">
 								</div>
 							</div>
 							<div class="form-group">
 								<p class="col-sm-3 control-label">Precision</p>
 								<div class="col-sm-8">
-									<input class="form-control" id="inputPrecision" placeholder="{{precision}}">
+									<input class="form-control" id="inputPrecision" placeholder="{{numeric.precision}}">
 								</div>
 							</div>
 
@@ -161,16 +161,146 @@
 					</div>
 				</div>
 
+				<!-- Navigation bar -->
+				<nav class="navbar navbar-default" id="custom_navbar" role="navigation">
+					<div class="container-fluid">
+						<!-- add a cute bird. Weka has chosen a cute bird from their country (the weka). Since we are in America ("America, FUCK YEAH!") we choose an eagle, but a cute one -->
+						<div class="navbar-header">
+							<a class="navbar-brand" href="#">
+								<img style="height: 45px; margin-top: -8px;" src="/static/eagle.svg">
+							</a>
+							<a class="navbar-brand" href="#">VARF</a>
+						</div>
+						<div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+							<ul class="nav navbar-nav">
+								<li class="active"><a href="#">Visualization<span class="sr-only">(current)</span></a></li>
+								<li><a href="#">Classify</a></li>
+								<li><a href="#">Feature ranking</a></li>
+							</ul>
+							<ul class="nav navbar-nav navbar-right">
+								<li><a href="#">{{filename}}</a></li>
+							</ul>
+						</div>
+				</nav>
 
+				<div class="general_container">
 
-			</div>
+					<!-- The list of attributes, filled from the beginning, via template. -->
+					<div class="panel panel-default attribute_list">
+						<div class="title_row panel-heading">
+							<h4>Features</h4>
+						</div>
+						<div class="row_container">
+							{{#each attributes}}
+							<div class="attribute_row">
+								<div class="attribute_row_index">{{@index}}</div>
+								<div class="attribute_row_content"><a href="/?att_id={{@index}}">{{.}}</a></div>
+							</div>
+							{{/each}}
+						</div>
+					</div>
 
+					<!-- everything is considered a visu, and is on the right -->
+					<div class="panel_visus">
+						<!-- The graph properly talking -->
+						<div class="panel panel-default graph">
+							<div class="title_row panel-heading">
+								<h4>Visualization for {{name}}</h4>
 
+							</div>
+							<div id="chart"></div>
+						</div>
 
+						<!-- A small panel containing some statistics -->
+						<div class="overstats">
+							<div class="panel panel-default stats">
+								<div class="title_row panel-heading">
+									<h4>Stats</h4>
+								</div>
+								<div class="attribute_row">
+									<div class="attribute_row_large">Missing: </div>
+									<div class="attribute_row_content"><a href="/?att_id={{@index}}">1234 (0.81%)</a></div>
+								</div>
+								<div class="attribute_row">
+									<div class="attribute_row_large">Min: </div>
+									<div class="attribute_row_content"><a href="/?att_id={{@index}}">0</a></div>
+								</div>
+								<div class="attribute_row">
+									<div class="attribute_row_large">Max: </div>
+									<div class="attribute_row_content"><a href="/?att_id={{@index}}">1</a></div>
+								</div>
+								<div class="attribute_row">
+									<div class="attribute_row_large">Mean: </div>
+									<div class="attribute_row_content"><a href="/?att_id={{@index}}">0.222</a></div>
+								</div>
+								<div class="attribute_row">
+									<div class="attribute_row_large">Std: </div>
+									<div class="attribute_row_content"><a href="/?att_id={{@index}}">0.333</a></div>
+								</div>
+							</div>
+						</div>
 
+						<!-- Some actions the the user can do with the graph-->
+						<div class="panel panel-default actions">
+							<div class="title_row panel-heading">
+								<h4>Color and zoom</h4>
+							</div>
+							<div class="dials">
+								<form class="form-horizontal">
+									<div class="form-group">
+										<label class="col-sm-5 control-label">Class: </label>
+										<div class="col-sm-7">
+											<select class="form-control">
+												<option>class</option>
+												<option>Japabu</option>
+												<option>beuku</option>
+												<option>ranafout</option>
+											</select>
+										</div>
+									</div>
+								</form>
 
+								<form class="form-horizontal">
+									<label class="col-sm-5 control-label">Graph axis:</label>
+									<br>
+									<div class="form-group">
+										<input type="hidden" name="att_id" value="{{att_id}}">
+									</div>
+									<div class="form-group">
+										<p class="col-sm-3 control-label">Max</p>
+										<div class="col-sm-8">
+											<input class="form-control" id="inputMax" placeholder="{{max}}">
+										</div>
+									</div>
+									<div class="form-group">
+										<p class="col-sm-3 control-label">Min</p>
+										<div class="col-sm-8">
+											<input class="form-control" id="inputMin" placeholder="{{min}}">
+										</div>
+									</div>
+									<div class="form-group">
+										<p class="col-sm-3 control-label">Precision</p>
+										<div class="col-sm-8">
+											<input class="form-control" id="inputPrecision" placeholder="{{precision}}">
+										</div>
+									</div>
 
-			<script>
+								</form>
+							</div>
+						</div>
+
+						<!-- A panel showing related instances, when a user click on the graph -->
+						<div class="overinstances">
+							<div class="panel panel-default instances">
+								<div class="title_row panel-heading">
+									<h4>Stats</h4>
+								</div>
+								Click on the an area of the graph to show the corresponding instances. If you have a id.ignore, you will be able to access the diffbot preview of each instance.
+							</div>
+						</div>
+					</div>
+
+					<script>
 
 var id0 = {{#if numeric}}1{{else}}0{{/if}};
 var id1 = {{#if numeric}}2{{else}}1{{/if}};
@@ -198,13 +328,16 @@ row.push("{{label}}");
 {{/if}}
 
 var sum = 0;
-{{#each slices_len}}
-sum += {{.}};
-row.push({{.}});
+// LEN: {{length slices}}
+
+{{#each slices}}
+//
+sum += {{length this}};
+row.push({{length this}});
 {{/each}}
 
-{{#each slices_len}}
-row.push({{.}} / sum);
+{{#each slices}}
+row.push({{length this}} / sum);
 {{/each}}
 
 rows.push(row);
@@ -242,9 +375,9 @@ var chart = c3.generate({
 			var url = "/pop?slice="+slice_id+"&class="+name;
 			url += "&att_id=" + {{att_id}};
 			{{#if numeric}}
-			url += "&precision=" + {{precision}};
-			url += "&min=" + {{min}};
-			url += "&max=" + {{max}};
+			url += "&precision=" + {{numeric.precision}};
+			url += "&min=" + {{numeric.min}};
+			url += "&max=" + {{numeric.max}};
 			{{/if}}
 
 			window.open(url, "_blank");
@@ -281,8 +414,8 @@ var chart = c3.generate({
 	},
 });
 
-			</script>
-		</div>
+					</script>
+				</div>
 	</body>
 </html>
 

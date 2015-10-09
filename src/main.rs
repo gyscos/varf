@@ -1,8 +1,12 @@
+#![feature(custom_derive, plugin)]
+#![plugin(tojson_macros)]
+
 // These are for the Iron web framework
 extern crate iron;
 extern crate staticfile;
 extern crate router;
 extern crate mount;
+extern crate handlebars;
 extern crate handlebars_iron as hbs;
 extern crate urlencoded;
 
@@ -12,6 +16,7 @@ extern crate getopts;
 extern crate toml;
 
 mod arff;
+mod data;
 mod visu;
 
 use getopts::Options;
@@ -123,7 +128,6 @@ fn main() {
     if params.open_browser {
     Command::new("xdg-open").arg(&format!("http://localhost:{}", params.port)).status().ok().expect("Could not open page in browser.");
     }
-
 
     visu::serve_result(&params.datadir, params.port, &content);
 }
