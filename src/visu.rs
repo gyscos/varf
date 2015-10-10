@@ -122,10 +122,10 @@ fn prepare_pop_view_data(content: &arff::ArffContent, req: &mut Request)
         None => return Err("no slice parameter".to_string()),
     };
 
-    let class = match map.get("class") {
+    let (class,class_id) = match map.get("class") {
         Some(class) => match class.first() {
             Some(class) => match content.get_class_id(att_cmp, class) {
-                Some(class) => class,
+                Some(class_id) => (class,class_id),
                 None => return Err(format!("could not find class {}", class)),
             },
             None => return Err("class parameter empty".to_string()),
@@ -138,7 +138,7 @@ fn prepare_pop_view_data(content: &arff::ArffContent, req: &mut Request)
     let lines: Vec<_> = data["samples"].as_array().expect("samples is not an array")
         [slice_id].as_object().expect("sample is not an object")
         ["slices"].as_array().expect("slice is not an array")
-        [class].as_array().expect("population is not an array?!?")
+        [class_id].as_array().expect("population is not an array?!?")
         .iter().map(|sample| {
             // println!("Sample: {:?}", sample);
             content.describe_sample(sample.as_i64().unwrap() as usize)
