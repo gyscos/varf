@@ -31,7 +31,7 @@ a:hover {
     vertical-align: top;
     margin-bottom: 10px;
     margin-right: 0px;
-    height: 660px;
+    height: 670px;
     width: 25%;
     overflow:hidden;
     position:relative;
@@ -136,19 +136,19 @@ a:hover {
 .actions {
     display: inline-block;
     vertical-align: top;
-    width: 32%;
+    width: 30%;
 	overflow: hidden;
-	height: 270px;
+	height: 280px;
 	box-sizing: border-box;
 }
 
 .overinstances {
     display: inline-block;
     vertical-align: top;
-    width: 67.9%;
+    width: 69.9%;
     margin-left: -4px;
     padding-left: 10px;
-	height: 270px;
+	height: 280px;
 	box-sizing: border-box;
 }
 
@@ -160,15 +160,29 @@ a:hover {
 	box-sizing: border-box;
 	width: 100%;
     padding: 20px;
+    padding-top:16px;
 	text-align: center;
 }
 
 .form-group {
-    margin-bottom: 5px;
+    margin-bottom: 4px;
 }
 
+.form-horizontal {
+    margin-bottom: 0px; 
+}
 
+.control-label {
+    padding-top: 3px;
+}
 
+#axislabel {
+    padding-top: 2px;
+}
+
+#submitbtn {
+    width: 100%;
+}
 
 
 
