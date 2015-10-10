@@ -202,7 +202,7 @@ fn prepare_att_view_data(content: &arff::ArffContent, req: &mut Request)
 
                 let span = max - min;
                 // round n_slices to a divider of span, if it is a int
-                let precision = try!(read_or(&hashmap, "precision", 51));
+                let precision = try!(read_or(&hashmap, "precision", 26));
                 map.insert("min".to_string(), min.to_json());
                 map.insert("max".to_string(), max.to_json());
                 map.insert("precision".to_string(), precision.to_json());
