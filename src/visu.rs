@@ -12,6 +12,7 @@ use std::str::FromStr;
 use std::path::Path;
 use std::mem::transmute;
 use std::fmt::Display;
+use std::process::Command;
 use hbs::{Template,HandlebarsEngine};
 use arff;
 use arff::Population;
@@ -282,7 +283,7 @@ impl Handler for AttributeViewHandler {
     }
 }
 
-pub fn serve_result<'a>(datadir: &'a str, port: u16, content: &'a arff::ArffContent) {
+pub fn serve_result<'a>(datadir: &'a str, port: u16, content: &'a arff::ArffContent, open_browser: bool) {
     // Find the resource basedir
     println!("Loading templates from {}", datadir);
 
@@ -298,9 +299,14 @@ pub fn serve_result<'a>(datadir: &'a str, port: u16, content: &'a arff::ArffCont
         .mount("/static/", Static::new(Path::new(&format!("{}/static", datadir))));
 
     // Load templates from there.
-    println!("Now listening on port {}", port);
     let mut chain = Chain::new(mount);
     chain.link_after(HandlebarsEngine::new(&format!("{}/templates/", datadir), ".html"));
+    println!("Now listening on port {}", port);
+
+    if open_browser {
+        Command::new("xdg-open").arg(&format!("http://localhost:{}", port)).status().ok().expect("Could not open page in browser.");
+    }
+
     Iron::new(chain).http(("0.0.0.0", port)).unwrap();
 }
 

@@ -20,7 +20,6 @@ use std::fs::File;
 use std::path;
 use std::str::FromStr;
 use std::io::Read;
-use std::process::Command;
 
 fn get_default_port() -> u16 {
     let default = 8080;
@@ -120,10 +119,5 @@ fn main() {
 
     let content = arff::ArffContent::new(path::Path::new(&params.filename));
 
-    if params.open_browser {
-    Command::new("xdg-open").arg(&format!("http://localhost:{}", params.port)).status().ok().expect("Could not open page in browser.");
-    }
-
-
-    visu::serve_result(&params.datadir, params.port, &content);
+    visu::serve_result(&params.datadir, params.port, &content, params.open_browser);
 }
