@@ -15,6 +15,14 @@ pub struct VisuData {
     pub numeric: Option<NumericData>,
 }
 
+#[derive(ToJson,Debug)]
+pub struct PopData {
+    pub class_description: String,
+    pub description: String,
+    pub lines: Vec<String>,
+}
+
+
 /// These fields are only filled when the attribute is numeric
 #[derive(ToJson,Debug)]
 pub struct NumericData {

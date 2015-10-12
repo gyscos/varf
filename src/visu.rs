@@ -1,5 +1,4 @@
 use std::io::Write;
-use std::collections::BTreeMap;
 use std::collections::HashMap;
 use rustc_serialize::json::{Json,ToJson};
 use urlencoded::UrlEncodedQuery;
@@ -88,7 +87,7 @@ fn round_to_divider(value: usize, target: f32) -> usize {
 }
 
 fn prepare_pop_view_data(content: &arff::ArffContent, req: &mut Request)
-    -> Result<Json,String>
+    -> Result<data::PopData,String>
 {
     let data = try!(prepare_att_view_data(content, req));
     let map = match req.get::<UrlEncodedQuery>() {
@@ -126,20 +125,20 @@ fn prepare_pop_view_data(content: &arff::ArffContent, req: &mut Request)
         None => return Err("no class parameter".to_string()),
     };
 
-    let mut map = BTreeMap::<String,Json>::new();
-
     let lines: Vec<_> = data.samples[slice_id].slices.text().unwrap()
         [class].0.iter().map(|&sample| {
             // println!("Sample: {:?}", sample);
             content.describe_sample(sample)
         }).collect();
 
-    map.insert("lines".to_string(), lines.to_json());
 
-    map.insert("class_description".to_string(), format!("{} = {}", cmp.name, class).to_json());
-    map.insert("description".to_string(), format!("{} ~ {}", attr.name, &data.samples[slice_id].label).to_json());
+    let data = data::PopData {
+        class_description: format!("{} = {}", cmp.name, class),
+        description: format!("{} ~ {}", attr.name, &data.samples[slice_id].label),
+        lines: lines,
+    };
 
-    Ok(Json::Object(map))
+    Ok(data)
 }
 
 fn prepare_att_view_data(content: &arff::ArffContent, req: &mut Request)
@@ -253,10 +252,10 @@ impl Handler for PopViewHandler {
         let data = prepare_pop_view_data(self.content, req);
         match data {
             Err(err) => Ok(Response::with((status::Ok, format!("Error: {}", err)))),
-            Ok(json) => {
+            Ok(data) => {
                 let mut resp = Response::new();
 
-                resp.set_mut(Template::new("pop", json)).set_mut(status::Ok);
+                resp.set_mut(Template::new("pop", data.to_json())).set_mut(status::Ok);
                 Ok(resp)
             },
         }
