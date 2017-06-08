@@ -6,7 +6,11 @@ extern crate mount;
 extern crate handlebars_iron as hbs;
 extern crate urlencoded;
 
-extern crate rustc_serialize;
+extern crate serde;
+#[macro_use]
+extern crate serde_derive;
+extern crate serde_json;
+
 extern crate xdg_basedir;
 extern crate getopts;
 extern crate toml;
@@ -20,6 +24,11 @@ use std::fs::File;
 use std::path;
 use std::str::FromStr;
 use std::io::Read;
+
+#[derive(Deserialize)]
+struct Config {
+    port: Option<u16>,
+}
 
 fn get_default_port() -> u16 {
     let default = 8080;
@@ -38,15 +47,12 @@ fn get_default_port() -> u16 {
         Ok(_) => (),
     }
 
-    let table = match toml::Parser::new(&content).parse() {
-        Some(table) => table,
-        None => return default,
-    };
-
-    let port = match table.get("port") {
-        Some(&toml::Value::Integer(port)) => port as u16,
+    let table: Config = match toml::de::from_str(&content) {
+        Ok(table) => table,
         _ => return default,
     };
+
+    let port = table.port.unwrap_or(default);
 
     port
 }
@@ -68,12 +74,16 @@ struct Params {
     open_browser: bool,
 }
 
-fn read_params() -> Result<Params,String> {
+fn read_params() -> Result<Params, String> {
     let args: Vec<String> = env::args().collect();
     let mut opts = Options::new();
     opts.optflag("h", "help", "Prints this help message.");
     opts.optopt("p", "", "Sets the port to listen to.", "PORT");
-    opts.optopt("d", "", &format!("Sets the directory where varf files are installed. Defaults to {}", get_data_dir()), "VARF_HOME");
+    opts.optopt("d",
+                "",
+                &format!("Sets the directory where varf files are installed. Defaults to {}",
+                         get_data_dir()),
+                "VARF_HOME");
     opts.optflag("o", "open", "Open the page in the browser");
 
     let mut matches = match opts.parse(&args[1..]) {
@@ -113,7 +123,10 @@ fn read_params() -> Result<Params,String> {
 fn main() {
 
     let params = match read_params() {
-        Err(e) => { println!("{}", e); return; },
+        Err(e) => {
+            println!("{}", e);
+            return;
+        }
         Ok(params) => params,
     };
 

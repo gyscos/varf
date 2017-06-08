@@ -6,10 +6,11 @@ use std::io::BufRead;
 use std::str::FromStr;
 use std::cmp::Ordering;
 
+#[derive(Serialize, Deserialize)]
 pub struct Population(pub Vec<usize>);
 
 pub enum AttributeSamples {
-    Numeric(Vec<(f32,usize)>),
+    Numeric(Vec<(f32, usize)>),
     Text(Vec<Population>),
     BadType,
 }
@@ -24,7 +25,7 @@ impl AttributeSamples {
                     list.push(Population(Vec::new()));
                 }
                 AttributeSamples::Text(list)
-            },
+            }
             _ => AttributeSamples::BadType,
         }
     }
@@ -74,18 +75,25 @@ pub enum AttributeType {
 impl AttributeType {
     // Parse an attribute type from the arff header
     fn parse(s: &str) -> Self {
-        if s == "numeric" { return AttributeType::Numeric; }
-        if s == "string" { return AttributeType::String; }
-        if s.len() < 2 { println!("Bad type: {}", s); return AttributeType::Unknown; }
+        if s == "numeric" {
+            return AttributeType::Numeric;
+        }
+        if s == "string" {
+            return AttributeType::String;
+        }
+        if s.len() < 2 {
+            println!("Bad type: `{}`", s);
+            return AttributeType::Unknown;
+        }
 
         let mut chars = s.chars();
         if chars.next().unwrap() != '{' || chars.last().unwrap() != '}' {
-            panic!("Bad type: {}", s);
+            panic!("Bad type: `{}`", s);
         }
 
         let tokens = {
             let len = s.len();
-            s[1..len-1].split(',').map(|s| s.to_string()).collect()
+            s[1..len - 1].split(',').map(|s| s.to_string()).collect()
         };
         AttributeType::Text(tokens)
     }
@@ -130,9 +138,11 @@ fn parse_f32(s: &str) -> f32 {
 impl ArffContent {
 
     pub fn get_class_id(&self, attribute: usize, class: &str) -> Option<usize> {
-        self.attributes[attribute].att_type.tokens()
-            .and_then(|tokens| tokens.iter().enumerate().find(|&(_,value)| value == class))
-            .map(|(i,_)| i)
+        self.attributes[attribute]
+            .att_type
+            .tokens()
+            .and_then(|tokens| tokens.iter().enumerate().find(|&(_, value)| value == class))
+            .map(|(i, _)| i)
     }
 
     pub fn describe_sample(&self, sample_id: usize) -> String {
@@ -157,24 +167,25 @@ impl ArffContent {
     }
 
     fn load_data_line(&mut self, line: &str) {
-        let values = line.split(',').zip(self.attributes.iter()).map(|(token, attr)| {
-            if token == "?" {
-                Value::Missing
-            } else {
-                match attr.att_type {
-                    AttributeType::Numeric =>
-                        Value::Numeric(parse_f32(token)),
-                    AttributeType::Text(ref tokens) =>
-                        Value::Text(tokens.iter().position(|s| s == token).unwrap()),
-                    AttributeType::String =>
-                        Value::String(token.to_string()),
-                    _ => Value::Missing,
-                }
-            }
-        }).collect();
-        self.data.push(Instance {
-            values: values,
-        });
+        let values = line.split(',')
+                         .zip(self.attributes.iter())
+                         .map(|(token, attr)| {
+                             if token == "?" {
+                                 Value::Missing
+                             } else {
+                                 match attr.att_type {
+                                     AttributeType::Numeric => Value::Numeric(parse_f32(token)),
+                                     AttributeType::Text(ref tokens) =>
+                                         Value::Text(tokens.iter()
+                                                           .position(|s| s == token)
+                                                           .unwrap()),
+                                     AttributeType::String => Value::String(token.to_string()),
+                                     _ => Value::Missing,
+                                 }
+                             }
+                         })
+                         .collect();
+        self.data.push(Instance { values: values });
     }
 
     fn load_line(&mut self, line: &str) -> bool {
@@ -184,28 +195,28 @@ impl ArffContent {
             Some("@attribute") => {
                 let name = tokens.next().unwrap();
                 let t = tokens.next().unwrap();
-                let attr = Attribute{
+                let attr = Attribute {
                     name: name.to_string(),
                     att_type: AttributeType::parse(t),
                 };
                 self.samples.push(AttributeSamples::from_attr(&attr));
                 self.attributes.push(attr);
-            },
+            }
             Some("@data") => {
                 // Consume the rest of the lines
                 return true;
-            },
+            }
             _ => (),
         }
         false
     }
 
     fn make_samples(&mut self) {
-        for (id,instance) in self.data.iter().enumerate() {
+        for (id, instance) in self.data.iter().enumerate() {
             for (value, samples) in instance.values.iter().zip(self.samples.iter_mut()) {
                 match samples {
                     &mut AttributeSamples::Numeric(ref mut list) => match value.num() {
-                        Some(f) => list.push((f,id)),
+                        Some(f) => list.push((f, id)),
                         None => (),
                     },
                     &mut AttributeSamples::Text(ref mut list) => match value.text() {
@@ -235,7 +246,7 @@ impl ArffContent {
             Ok(file) => file,
         };
 
-        let mut content = ArffContent{
+        let mut content = ArffContent {
             filename: filename.to_str().unwrap().to_string(),
             title: String::new(),
             attributes: Vec::new(),
@@ -249,14 +260,18 @@ impl ArffContent {
         println!("Loading arff file...");
         for raw_line in reader.lines() {
             let line = raw_line.unwrap();
-            if line.starts_with("%") { continue; }
+            if line.starts_with("%") {
+                continue;
+            }
 
             if reading_data {
                 // We are loading the data!
                 content.load_data_line(&line);
             } else {
                 // We are still loading the header
-                if content.load_line(&line) { reading_data = true; }
+                if content.load_line(&line) {
+                    reading_data = true;
+                }
             }
         }
 

@@ -55,7 +55,7 @@
 				<div class="attribute_row">
 					<div class="attribute_row_index">{{@index}}</div>
 					<div class="attribute_row_content">
-						<a href="/?att_id={{@index}}">{{.}}</a>
+						<a href="/?att_id={{@index}}">{{this}}</a>
 					</div>
 				</div>
 				{{/each}}
@@ -193,11 +193,11 @@
 			labels.push('x');
 			{{/if}}
 			{{#each classes}}
-			labels.push('{{.}}');
+			labels.push('{{this}}');
 			{{/each}}
 			
 			{{#each classes}}
-			labels.push('% of {{.}}');
+			labels.push('% of {{this}}');
 			{{/each}}
 			
 			rows.push(labels);
@@ -211,13 +211,14 @@
 			{{/if}}
 			
 			var sum = 0;
+            // {{slices_len}}
 			{{#each slices_len}}
-			sum += {{.}};
-			row.push({{.}});
+			sum += {{this}};
+			row.push({{this}});
 			{{/each}}
 			
 			{{#each slices_len}}
-			row.push({{.}} / sum);
+			row.push({{this}} / sum);
 			{{/each}}
 			
 			rows.push(row);
@@ -234,12 +235,12 @@
 					rows: rows,
 					types: {
 						{{#each classes}}
-						'{{.}}': {{#if ../../numeric}}'area'{{else}}'bar'{{/if}},
+						'{{this}}': {{#if ../../numeric}}'area'{{else}}'bar'{{/if}},
 						{{/each}}
 					},
 					axes: {
 						{{#each classes}}
-						'% of {{.}}': 'y2',
+						'% of {{this}}': 'y2',
 						{{/each}}
 					},
 			
@@ -266,12 +267,12 @@
 					hide: [
 					{{#each classes}}
 					{{#unless @first}}
-					'% of {{.}}',
+					'% of {{this}}',
 					{{/unless}}
 					{{/each}}
 					],
 			
-					groups: [[{{#each classes}}'{{.}}',{{/each}}]]
+					groups: [[{{#each classes}}'{{this}}',{{/each}}]]
 				},
 				axis: {
 					y2: {

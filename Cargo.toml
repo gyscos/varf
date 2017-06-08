@@ -1,16 +1,18 @@
 [package]
+authors = ["Alexandre Bury <alexandre.bury@gmail.com>", "Samuel Humeau <sam@diffbot.com>"]
 name = "varf"
 version = "0.1.2"
-authors = ["Alexandre Bury <alexandre.bury@gmail.com>","Samuel Humeau <sam@diffbot.com>"]
 
 [dependencies]
-toml = "*"
-xdg-basedir = "*"
-getopts = "*"
-iron = "*"
-router = "*"
-mount = "*"
-rustc-serialize = "0.3"
-staticfile = "*"
-urlencoded = "*"
-handlebars-iron = "*"
+getopts = "0.2.14"
+handlebars-iron = "0.24.1"
+iron = "0.5.1"
+mount = "0.3.0"
+router = "0.5.1"
+serde = "1.0.8"
+serde_derive = "1.0.8"
+serde_json = "1.0.2"
+staticfile = "0.4.0"
+toml = "0.4.1"
+urlencoded = "0.5.0"
+xdg-basedir = "1.0.0"
